@@ -1,0 +1,10 @@
+{% import "_macros.html" as macros %}
+{% extends 'layout.html' %}
+
+{% block content %}
+
+    <main role="main">
+        {{ macros.render_post(post) }}
+    </main>
+
+{% endblock %}
