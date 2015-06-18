@@ -93,11 +93,12 @@ def create(site_name):
 
 @cli.command()
 @click.argument('site_name')
-def compile(site_name):
+def build(site_name):
     """
-    Compile a site
+    Build a site
     """
     # TO DO cleanup
+    print('Building...')
 
     # Load site-specific config
     path = os.path.join(base, site_name + '.json')
@@ -138,4 +139,4 @@ def compile(site_name):
     rss_path = os.path.join(rss_dir, 'rss.xml')
     compile_rss(new_posts, conf, rss_path)
 
-    echo('Compiled!')
+    echo('Built!')

@@ -1,6 +1,6 @@
 {% macro render_post(post) -%}
     <div class="post">
-        <h1>{{ post.title_html|safe }}</h1>
+        <h1><a href="/{{ post.category }}/{{ post.slug }}">{{ post.title_html|safe }}</a></h1>
         <h6>Published on {{ post.published_at.strftime('%m.%d.%Y') }} in [<a href="/{{ post.category }}">{{ post.category }}</a>]</h6>
         {{ post.html|safe }}
     </div>
