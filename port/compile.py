@@ -70,7 +70,8 @@ def compile_file(path):
     data = {
         'html': html,
         'slug': slug,
-        'category': category
+        'category': category,
+        'url': '/{}/{}'.format(category, slug)
     }
     data.update(meta)
 
