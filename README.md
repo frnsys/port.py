@@ -151,3 +151,12 @@ What this does is generate the necessary config files to host the site and resta
 If you want to "unhost" the site, you can just run:
 
     $ port unhost <site name> <host name>
+
+
+#### Debugging tips
+
+If you're having issues with hosting the site, these logs help:
+
+    $ tail -f /var/log/supervisor/supervisord.log
+    $ tail -f /var/log/nginx/error.log
+    $ tail -f /var/log/port_<site name>.log
