@@ -17,7 +17,7 @@ setup(
         'flask',
         'py-gfm',
         'pyrss2gen',
-        'python-dateutil'
+        'python-dateutil',
     ],
     entry_points='''
         [console_scripts]

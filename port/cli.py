@@ -5,8 +5,23 @@ import shutil
 from click import echo
 from port.server import create_app
 from port.compile import compile_rss, compile_file
+from port.host import host
 
 base = os.path.expanduser('~/.port')
+
+
+def app_for_site(site_name, port):
+    # Load site-specific config
+    path = os.path.join(base, site_name + '.json')
+    conf = json.load(open(path, 'r'))
+
+    # Prep paths
+    site_dir = conf['SITE_DIR']
+    conf['BUILD_DIR'] = os.path.join(site_dir, '.build')
+    conf['ASSET_DIR'] = os.path.join(site_dir, 'assets')
+    theme = os.path.join(base, 'themes', conf['THEME'])
+
+    return create_app(static_folder=theme, template_folder=theme, **conf)
 
 
 @click.group()
@@ -21,19 +36,19 @@ def serve(site_name, port):
     """
     Serve a site
     """
-    # Load site-specific config
-    path = os.path.join(base, site_name + '.json')
-    conf = json.load(open(path, 'r'))
-
-    # Prep paths
-    site_dir = conf['SITE_DIR']
-    conf['BUILD_DIR'] = os.path.join(site_dir, '.build')
-    conf['ASSET_DIR'] = os.path.join(site_dir, 'assets')
-    theme = os.path.join(base, 'themes', conf['THEME'])
-
-    # gogogo
-    app = create_app(static_folder=theme, template_folder=theme, **conf)
+    app = app_for_site(site_name, port)
     app.run(host='0.0.0.0', debug=True, port=port)
+
+
+@cli.command()
+@click.argument('site_name')
+@click.argument('host_name')
+@click.option('--port', default=5005)
+def host(site_name, port):
+    """
+    Host a site (experimental, only tested on Ubuntu 14.04)
+    """
+    host(site_name, host_name, port=port)
 
 
 @cli.command()

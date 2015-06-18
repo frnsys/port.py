@@ -127,3 +127,10 @@ You can refer to static files in your theme at the `/static` url. For instance, 
 #### Example
 
 See the [default theme](https://github.com/ftzeng/port/tree/master/themes/default) for an example.
+
+
+---
+
+## Hosting on a server
+
+(coming soon)
