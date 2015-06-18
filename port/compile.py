@@ -1,6 +1,5 @@
 import os
 import re
-from time import time
 from datetime import datetime
 from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
@@ -8,7 +7,7 @@ from distutils.util import strtobool
 from port.md2html import compile_markdown
 
 meta_re = re.compile(r'%~\n(.+)\n%~', re.DOTALL)
-title_re = re.compile(r'#\s?(.+)')
+title_re = re.compile(r'^#\s?([^#]+)')
 
 
 def compile_file(path):
