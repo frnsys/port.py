@@ -30,7 +30,7 @@ A folder will created at whatever directory you specified during configuration.
 In there you will notice three folders:
 
 - `.build` - this is where your compiled posts are stored. This folder is destroyed every build, so don't store anything important there.
-- `assets` - this is where your static files will be served from. So for example in your posts you could refer `/assets/my_image.png` and place `my_image.png` in this folder.
+- `assets` - this is where your static files will be served from. So for example you could place `my_image.png` in this folder and then in your posts you could refer to `/assets/my_image.png`.
 - `default_category` - this is the default category folder. You can rename this or replace it.
 
 `port` treats any folder in this directory (except for the `.build` and `assets` folders) as a "category".
