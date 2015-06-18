@@ -7,13 +7,29 @@ from port.models import Post
 bp = Blueprint('main', __name__)
 
 
+def get_meta(conf):
+    site_dir = conf.get('SITE_DIR')
+
+    categories = [c for c in os.listdir(site_dir)
+                    if c not in ['.build', 'assets']]
+
+    meta = {
+        'categories': categories
+    }
+
+    meta.update(conf)
+    return meta
+
+
+
 @bp.route('/')
 def index():
     """
     Index for all categories
     """
-    build_dir = current_app.config.get('BUILD_DIR')
-    per_page = int(current_app.config.get('PER_PAGE'))
+    conf = current_app.config
+    build_dir = conf.get('BUILD_DIR')
+    per_page = int(conf.get('PER_PAGE'))
 
     files = [f for f in os.listdir(build_dir)
              if f.endswith('.json')
@@ -32,7 +48,7 @@ def index():
     posts = [Post(os.path.join(build_dir, f)) for f in files[n:m]]
     return render_template('index.html', posts=posts, page=page+1,
                            last_page=math.ceil(N/per_page),
-                           site_data=current_app.config)
+                           site_data=get_meta(conf))
 
 
 @bp.route('/<category>')
@@ -40,8 +56,9 @@ def category(category):
     """
     Index for a category
     """
-    build_dir = current_app.config.get('BUILD_DIR')
-    per_page = int(current_app.config.get('PER_PAGE'))
+    conf = current_app.config
+    build_dir = conf.get('BUILD_DIR')
+    per_page = int(conf.get('PER_PAGE'))
 
     files = [f for f in os.listdir(build_dir)
              if f.endswith('.json')
@@ -61,7 +78,7 @@ def category(category):
     posts = [Post(os.path.join(build_dir, f)) for f in files[n:m]]
     return render_template('category.html', posts=posts, page=page+1,
                            last_page=math.ceil(N/per_page),
-                           site_data=current_app.config)
+                           site_data=get_meta(conf))
 
 
 @bp.route('/<category>/<slug>')
@@ -70,6 +87,7 @@ def post(category, slug):
     Show a single post;
     The slug is the filename of the original markdown file
     """
+    conf = current_app.config
     build_dir = current_app.config.get('BUILD_DIR')
     cslug = '{0}_{1}'.format(category, slug)
 
@@ -79,7 +97,7 @@ def post(category, slug):
             path = os.path.join(build_dir, f)
             post = Post(path)
             return render_template('single.html', post=post,
-                                   site_data=current_app.config)
+                                   site_data=get_meta(conf))
 
     abort(404)
 

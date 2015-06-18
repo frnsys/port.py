@@ -106,7 +106,7 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 
 Within each of these templates, you have access to the following variables:
 
-- `site_data` - a dictionary consisting of the data stored in your site's JSON config file
+- `site_data` - a dictionary consisting of the data stored in your site's JSON config file and additional metadata, such as `categories`
 - post data: `single.html` includes a `post` object, `category.html` and `index.html` include a `posts` list
 - pagination data (`category.html` and `index.html`): you get a `page` variable (current page number) and a `last_page` variable (max page number)
 
