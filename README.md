@@ -99,6 +99,8 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 - `category.html` - used to render category pages
 - `index.html` - used to render the home page
 - `single.html` - used to render single post pages
+- `404.html` - 404 error page
+- `500.html` - 500 error page
 
 #### Available data
 

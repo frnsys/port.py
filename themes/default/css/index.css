@@ -54,6 +54,11 @@ header a:visited {
     float: right;
 }
 
+.error {
+    text-align: center;
+    margin: 4em;
+}
+
 table {
   padding: 0;
   display: block;
@@ -88,5 +93,4 @@ table tr th :first-child, table tr td :first-child {
 
 table tr th :last-child, table tr td :last-child {
   margin-bottom: 0; }
-
 
