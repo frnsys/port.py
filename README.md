@@ -133,4 +133,14 @@ See the [default theme](https://github.com/ftzeng/port/tree/master/themes/defaul
 
 ## Hosting on a server
 
-(coming soon)
+A convenience command is included for hosting your site on a server with `nginx`, `uwsgi`, and `supervisor`:
+
+    $ port host <site name> <host name> <user> [--port]
+
+For example:
+
+    $ port host my_new_site blog.mysite.com ftseng --port 5005
+
+The `<user>` arg is so that `supervisor` can locate the `port` site config and themes.
+
+What this does is generate the necessary config files to host the site and restart `nginx` and `supervisor`.

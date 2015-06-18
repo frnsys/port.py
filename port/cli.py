@@ -5,7 +5,7 @@ import shutil
 from click import echo
 from port.server import create_app
 from port.compile import compile_rss, compile_file
-from port.host import host
+from port.host import host_site
 
 base = os.path.expanduser('~/.port')
 
@@ -43,12 +43,13 @@ def serve(site_name, port):
 @cli.command()
 @click.argument('site_name')
 @click.argument('host_name')
+@click.argument('user')
 @click.option('--port', default=5005)
-def host(site_name, port):
+def host(site_name, host_name, user, port):
     """
     Host a site (experimental, only tested on Ubuntu 14.04)
     """
-    host(site_name, host_name, port=port)
+    host_site(site_name, host_name, user, port=port)
 
 
 @cli.command()
