@@ -5,7 +5,7 @@ import shutil
 from click import echo
 from port.server import create_app
 from port.compile import compile_rss, compile_file
-from port.host import host_site
+from port.host import host_site, unhost_site
 
 base = os.path.expanduser('~/.port')
 
@@ -50,6 +50,16 @@ def host(site_name, host_name, user, port):
     Host a site (experimental, only tested on Ubuntu 14.04)
     """
     host_site(site_name, host_name, user, port=port)
+
+
+@cli.command()
+@click.argument('site_name')
+@click.argument('host_name')
+def unhost(site_name, host_name):
+    """
+    Unhost a site
+    """
+    unhost_site(site_name, host_name)
 
 
 @cli.command()

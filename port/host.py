@@ -7,6 +7,7 @@ for supervisor and nginx to run the uwsgi flask processes.
 I don't feel good about this approach but it works for now
 """
 
+import os
 import subprocess
 from jinja2 import Template
 
@@ -72,6 +73,22 @@ def host_site(site_name, host, user, port=5005):
     with open(app_file, 'w') as f:
         f.write(application)
         print('Wrote to', app_file)
+
+    subprocess.call(['sudo', 'service', 'supervisor', 'restart'])
+    subprocess.call(['sudo', 'service', 'nginx', 'restart'])
+
+
+def unhost_site(site_name, host):
+    port_name = 'port_{}'.format(site_name)
+    app_dir = '/tmp'
+
+    nginx_file = '/etc/nginx/conf.d/{}.conf'.format(host)
+    supervisor_file = '/etc/supervisor/conf.d/{}.conf'.format(port_name)
+    app_file = '{}/{}.py'.format(app_dir, port_name)
+
+    for f in [nginx_file, supervisor_file, app_file]:
+        os.remove(f)
+        print('Removed {}'.format(f))
 
     subprocess.call(['sudo', 'service', 'supervisor', 'restart'])
     subprocess.call(['sudo', 'service', 'nginx', 'restart'])

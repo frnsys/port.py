@@ -144,3 +144,10 @@ For example:
 The `<user>` arg is so that `supervisor` can locate the `port` site config and themes.
 
 What this does is generate the necessary config files to host the site and restart `nginx` and `supervisor`.
+
+
+#### Unhosting
+
+If you want to "unhost" the site, you can just run:
+
+    $ port unhost <site name> <host name>
