@@ -81,6 +81,12 @@ The main endpoints are:
 
 The new site process will walk you through the basic configuration, which creates a JSON file in the `~/.port` folder. You can edit this JSON file to update your config, or add in arbitrary data which gets passed to your templates as a dictionary called `site_data`.
 
+## Miscellany
+
+- Draft posts are not listed in the category and index pages (and RSS feeds) but can be accessed by their direct url
+- Posts are ordered by reverse chron
+
+---
 
 ## Themes
 
@@ -121,9 +127,3 @@ You can refer to static files in your theme at the `/static` url. For instance, 
 #### Example
 
 See the [default theme](https://github.com/ftzeng/port/tree/master/themes/default) for an example.
-
-
-## Miscellany
-
-- Draft posts are not listed in the category and index pages (and RSS feeds) but can be accessed by their direct url
-- Posts are ordered by reverse chron
