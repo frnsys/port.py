@@ -4,7 +4,7 @@ import click
 import shutil
 from click import echo
 from port.server import create_app
-from port.compile import compile_rss, compile_file
+from port.compile import build_site
 from port.host import host_site, unhost_site
 
 base = os.path.expanduser('~/.port')
@@ -129,40 +129,6 @@ def build(site_name):
     # Load site-specific config
     path = os.path.join(base, site_name + '.json')
     conf = json.load(open(path, 'r'))
-    site_dir = conf['SITE_DIR']
-
-    # Get all files and compile
-    posts_by_category = {}
-    categories = [c for c in os.listdir(site_dir)
-                    if os.path.isdir(os.path.join(site_dir, c))
-                    and c != 'assets'
-                    and not c.startswith('.')]
-    for cat in categories:
-        path = os.path.join(site_dir, cat)
-        posts_by_category[cat] = [compile_file(os.path.join(path, f)) for f in os.listdir(path) if f.endswith('.md')]
-    posts = sum(posts_by_category.values(), [])
-
-    # Remove existing build
-    build_dir = os.path.join(site_dir, '.build')
-    if os.path.exists(build_dir):
-        shutil.rmtree(build_dir)
-    os.makedirs(build_dir)
-
-    # Write files
-    for post, build_slug in posts:
-        post_path = os.path.join(build_dir, build_slug + '.json')
-        json.dump(post, open(post_path, 'w'))
-
-    # Write RSS files
-    rss_dir = os.path.join(build_dir, 'rss')
-    os.makedirs(rss_dir)
-    for cat in categories:
-        rss_path = os.path.join(rss_dir, '{}.xml'.format(cat))
-        new_posts = [p for p, bs in posts_by_category[cat] if not p['draft']][:20]
-        compile_rss(new_posts, conf, rss_path)
-
-    new_posts = [p for p, bs in posts if not p['draft']][:20]
-    rss_path = os.path.join(rss_dir, 'rss.xml')
-    compile_rss(new_posts, conf, rss_path)
+    build_site(conf)
 
     echo('Built!')

@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width,initial-scale=1">
 
-    <title>{{ site_data['SITE_NAME'] }}</title>
+    <title>{{ site_data.site_name }}</title>
 
     <link rel="stylesheet" type="text/css" href="/static/css/index.css">
 
@@ -13,7 +13,7 @@
 
 <body>
 
-    <header><a href="/">{{ site_data['SITE_NAME'] }}</a></header>
+    <header><a href="/">{{ site_data.site_name }}</a></header>
 
     {% block content %}
     {% endblock %}
