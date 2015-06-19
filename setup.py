@@ -18,6 +18,7 @@ setup(
         'py-gfm',
         'pyrss2gen',
         'python-dateutil',
+        'pyyaml',
     ],
     entry_points='''
         [console_scripts]

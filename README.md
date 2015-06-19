@@ -44,14 +44,14 @@ When you've added or edited documents, you need to re-build the site:
 
 ## Writing a post
 
-When writing a post, you can include any arbitrary metadata by including a section demarcated by `%~` at the top of your file.
+When writing a post, you can include any arbitrary metadata using YAML front matter, i.e. by including a section demarcated by `---` at the very top of your file.
 
 For example:
 
-    %~
+    ---
     published_at: 6/17/2015 20:45
     draft: true
-    %~
+    ---
 
 This will be parsed and included as part of the `post` object passed to your templates (see below).
 

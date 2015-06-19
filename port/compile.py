@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import yaml
 import shutil
 from datetime import datetime
 from PyRSS2Gen import RSS2, RSSItem
@@ -8,7 +9,7 @@ from dateutil.parser import parse
 from distutils.util import strtobool
 from port.md2html import compile_markdown
 
-meta_re = re.compile(r'%~\n(.+)\n%~', re.DOTALL)
+meta_re = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
 title_re = re.compile(r'^#\s?([^#\n]+)')
 
 
@@ -101,15 +102,18 @@ def extract_metadata(raw):
         'draft': False
     }
 
-    # Try to extract metadata, demarcated by '%~'
+    # Try to extract metadata, specified as YAML front matter
     meta_match = meta_re.search(raw)
     if meta_match is not None:
         meta_raw = meta_match.group(1)
-        ext_meta = dict([[i.strip() for i in l.split(':', 1)] for l in meta_raw.split('\n')])
-        meta.update(ext_meta)
+        try:
+            ext_meta = yaml.load(meta_raw)
+            meta.update(ext_meta)
 
-        # Remove the metadata before we compile
-        raw = meta_re.sub('', raw).strip()
+            # Remove the metadata before we compile
+            raw = meta_re.sub('', raw).strip()
+        except yaml.scanner.ScannerError:
+            pass
 
     # Convert to bool if necessary
     if isinstance(meta['draft'], str):
