@@ -24,8 +24,8 @@ class Meta():
         for k, v in conf.items():
             setattr(self, k.lower(), v)
 
-        self.categories = [Category(c) for c in os.listdir(conf['SITE_DIR'])
-                                       if c not in ['.build', 'assets']]
+        self.categories = [Category(c) for c in os.listdir(conf['BUILD_DIR'])
+                                       if c != 'rss']
         self.current_url = request.url
 
 

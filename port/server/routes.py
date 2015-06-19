@@ -15,10 +15,16 @@ def index():
     build_dir = conf.get('BUILD_DIR')
     per_page = int(conf.get('PER_PAGE'))
 
-    files = [f for f in os.listdir(build_dir)
-             if f.endswith('.json')
-             and not f.startswith('D')]
-    files = sorted(files, key=lambda f: int(f.split('_')[0]), reverse=True)
+    categories = [c for c in os.listdir(build_dir)
+                    if c != 'rss']
+
+    files = []
+    for cat in categories:
+        cat_dir = os.path.join(build_dir, cat)
+        files += [(f, cat) for f in os.listdir(cat_dir)
+                           if f.endswith('.json')
+                           and not f.startswith('D')]
+    files = sorted(files, key=lambda f: int(f[0].split('_')[0]), reverse=True)
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)
@@ -30,7 +36,7 @@ def index():
     if n >= len(files):
         abort(404)
 
-    posts = [Post(os.path.join(build_dir, f)) for f in files[n:m]]
+    posts = [Post(os.path.join(build_dir, cat, f)) for f, cat in files[n:m]]
     return render_template('index.html', posts=posts, page=page+1,
                            last_page=math.ceil(N/per_page),
                            site_data=Meta(conf, request))
@@ -45,9 +51,9 @@ def category(category):
     build_dir = conf.get('BUILD_DIR')
     per_page = int(conf.get('PER_PAGE'))
 
-    files = [f for f in os.listdir(build_dir)
+    cat_dir = os.path.join(build_dir, category)
+    files = [f for f in os.listdir(cat_dir)
              if f.endswith('.json')
-             and '_{}_'.format(category) in f
              and not f.startswith('D')]
     files = sorted(files, key=lambda f: int(f.split('_')[0]), reverse=True)
 
@@ -61,7 +67,7 @@ def category(category):
     if n >= N:
         abort(404)
 
-    posts = [Post(os.path.join(build_dir, f)) for f in files[n:m]]
+    posts = [Post(os.path.join(cat_dir, f)) for f in files[n:m]]
     return render_template('category.html', posts=posts, page=page+1,
                            last_page=math.ceil(N/per_page),
                            site_data=Meta(conf, request))
@@ -75,12 +81,12 @@ def post(category, slug):
     """
     conf = current_app.config
     build_dir = current_app.config.get('BUILD_DIR')
-    cslug = '{0}_{1}'.format(category, slug)
+    cat_dir = os.path.join(build_dir, category)
 
     # meh
-    for f in os.listdir(build_dir):
-        if cslug in f:
-            path = os.path.join(build_dir, f)
+    for f in os.listdir(cat_dir):
+        if slug in f:
+            path = os.path.join(cat_dir, f)
             post = Post(path)
             return render_template('single.html', post=post,
                                    site_data=Meta(conf, request))

@@ -38,6 +38,11 @@ def build_site(conf):
         shutil.rmtree(build_dir)
     os.makedirs(build_dir)
 
+    # Make category folders
+    for cat in categories:
+        cat_dir = os.path.join(build_dir, cat)
+        os.makedirs(cat_dir)
+
     # Write files
     for post, build_slug in posts:
         post_path = os.path.join(build_dir, build_slug + '.json')
@@ -85,7 +90,7 @@ def compile_file(path):
 
     # Lead with the published timestamp so the
     # built files are in the right order
-    build_slug = '{0}{1}_{2}_{3}'.format('D' if meta['draft'] else '',
+    build_slug = '{2}/{0}{1}_{3}'.format('D' if meta['draft'] else '',
                                          meta['published_ts'],
                                          category,
                                          slug)
