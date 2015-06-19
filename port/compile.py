@@ -28,7 +28,9 @@ def build_site(conf):
     for cat in categories:
         path = os.path.join(site_dir, cat)
         posts_by_category[cat] = [compile_file(os.path.join(path, f)) for f in os.listdir(path) if f.endswith('.md')]
+        posts_by_category[cat] = sorted(posts_by_category[cat], key = lambda x: x[0]['published_at'], reverse=True)
     posts = sum(posts_by_category.values(), [])
+    posts = sorted(posts, key = lambda x: x[0]['published_at'], reverse=True)
 
     # Remove existing build
     build_dir = os.path.join(site_dir, '.build')
