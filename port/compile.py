@@ -105,7 +105,7 @@ def extract_metadata(raw):
     meta_match = meta_re.search(raw)
     if meta_match is not None:
         meta_raw = meta_match.group(1)
-        ext_meta = dict([[i.strip() for i in l.split(':')] for l in meta_raw.split('\n')])
+        ext_meta = dict([[i.strip() for i in l.split(':', 1)] for l in meta_raw.split('\n')])
         meta.update(ext_meta)
 
         # Remove the metadata before we compile
