@@ -32,3 +32,21 @@ class FileManager():
         path = os.path.join(self.site_dir, category)
         return [os.path.join(path, f) for f in os.listdir(path)
                                     if f.endswith('.md')]
+
+    def posts_for_category(self, category):
+        cat_dir = self.category_dir(category)
+        return [os.path.join(cat_dir, f) for f in os.listdir(cat_dir)
+                                         if f.endswith('.json')
+                                         and not f.startswith('D')]
+
+    def find_post(self, category, slug):
+        cat_dir = self.category_dir(category)
+
+        # meh
+        for f in os.listdir(cat_dir):
+            if slug in f:
+                return os.path.join(cat_dir, f)
+
+    def categories(self):
+        return [c for c in os.listdir(self.build_dir)
+                  if c != 'rss']

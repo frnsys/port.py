@@ -1,4 +1,3 @@
-import os
 import re
 import json
 from flask import current_app
@@ -35,10 +34,7 @@ class Post():
         """
         Get posts for a category
         """
-        cat_dir = current_app.fm.category_dir(category)
-        posts = [Post.from_file(os.path.join(cat_dir, f)) for f in os.listdir(cat_dir)
-                                                          if f.endswith('.json')
-                                                          and not f.startswith('D')]
+        posts = [Post.from_file(f) for f in current_app.fm.posts_for_category(category)]
         return cls._sort(posts)
 
     @classmethod
@@ -46,12 +42,9 @@ class Post():
         """
         Get a single post
         """
-        cat_dir = current_app.fm.category_dir(category)
-
-        # meh
-        for f in os.listdir(cat_dir):
-            if slug in f:
-                return Post.from_file(os.path.join(cat_dir, f))
+        file = current_app.fm.find_post(category, slug)
+        if file is not None:
+            return Post.from_file(file)
 
     @classmethod
     def _sort(cls, posts):
@@ -66,20 +59,16 @@ class Post():
         """
         Get a list of categories
         """
-        build_dir = current_app.fm.build_dir
-        return [c for c in os.listdir(build_dir)
-                if c != 'rss']
+        return current_app.fm.categories()
 
 
 class Meta():
     def __init__(self, request):
         conf = current_app.config
-        build_dir = current_app.fm.build_dir
         for k, v in conf.items():
             setattr(self, k.lower(), v)
 
-        self.categories = [Category(c) for c in os.listdir(build_dir)
-                                       if c != 'rss']
+        self.categories = [Category(c) for c in current_app.fm.categories()]
         self.current_url = request.url
 
 
