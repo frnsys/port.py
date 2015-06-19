@@ -73,7 +73,7 @@ def create(site_name):
     if not os.path.exists(base):
         os.makedirs(base)
 
-        default_themes = os.path.join(os.path.dirname(__file__), '../themes')
+        default_themes = os.path.join(os.path.dirname(__file__), 'themes')
         shutil.copytree(default_themes, theme_dir)
 
     path = os.path.join(base, site_name + '.json')
