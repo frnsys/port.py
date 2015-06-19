@@ -1,1 +1,1 @@
-include themes
+recursive-include themes *
