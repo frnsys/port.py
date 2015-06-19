@@ -153,5 +153,6 @@ def sync(site_name, remote):
         'rsync',
         '-ravu',
         site_dir + '/',
-        remote
+        remote,
+        '--delete'
     ])
