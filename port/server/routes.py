@@ -77,5 +77,4 @@ def assets(filename):
     Handle assets for this site
     (the actual static path is used to serve theme files)
     """
-    asset_dir = current_app.config.get('ASSET_DIR')
-    return send_from_directory(asset_dir, filename)
+    return send_from_directory(current_app.fm.asset_dir, filename)

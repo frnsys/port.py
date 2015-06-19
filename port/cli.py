@@ -7,22 +7,14 @@ from click import echo
 from port.server import create_app
 from port.compile import build_site
 from port.host import host_site, unhost_site
+from port.fs import FileManager
 
 base = os.path.expanduser('~/.port')
 
 
-def app_for_site(site_name, port):
-    # Load site-specific config
+def site_config(site_name):
     path = os.path.join(base, site_name + '.json')
-    conf = json.load(open(path, 'r'))
-
-    # Prep paths
-    site_dir = conf['SITE_DIR']
-    conf['BUILD_DIR'] = os.path.join(site_dir, '.build')
-    conf['ASSET_DIR'] = os.path.join(site_dir, 'assets')
-    theme = os.path.join(base, 'themes', conf['THEME'])
-
-    return create_app(static_folder=theme, template_folder=theme, **conf)
+    return json.load(open(path, 'r'))
 
 
 @click.group()
@@ -37,7 +29,13 @@ def serve(site_name, port):
     """
     Serve a site
     """
-    app = app_for_site(site_name, port)
+    conf = site_config(site_name)
+
+    site_dir = conf['SITE_DIR']
+    theme = os.path.join(base, 'themes', conf['THEME'])
+    app = create_app(static_folder=theme, template_folder=theme, **conf)
+
+    app.fm = FileManager(site_dir)
     app.run(host='0.0.0.0', debug=True, port=port)
 
 
@@ -124,14 +122,9 @@ def build(site_name):
     """
     Build a site
     """
-    # TO DO cleanup
     print('Building...')
-
-    # Load site-specific config
-    path = os.path.join(base, site_name + '.json')
-    conf = json.load(open(path, 'r'))
+    conf = site_config(site_name)
     build_site(conf)
-
     echo('Built!')
 
 
@@ -142,9 +135,7 @@ def sync(site_name, remote):
     """
     A convenience command to sync a site's files to a remote folder
     """
-    # Load site-specific config
-    path = os.path.join(base, site_name + '.json')
-    conf = json.load(open(path, 'r'))
+    conf = site_config(site_name)
 
     # Prep paths
     site_dir = conf['SITE_DIR']

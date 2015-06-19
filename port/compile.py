@@ -8,9 +8,11 @@ from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
 from distutils.util import strtobool
 from port.md2html import compile_markdown
+from port.fs import FileManager
 
 meta_re = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
 title_re = re.compile(r'^#\s?([^#\n]+)')
+
 
 
 def build_site(conf):
@@ -18,47 +20,39 @@ def build_site(conf):
     Build a site based on the passed config
     """
     site_dir = conf['SITE_DIR']
+    fm = FileManager(site_dir)
 
     # Get all files and compile
-    posts_by_category = {}
-    categories = [c for c in os.listdir(site_dir)
-                    if os.path.isdir(os.path.join(site_dir, c))
-                    and c != 'assets'
-                    and not c.startswith('.')]
+    posts_by_cat = {}
+    categories = fm.raw_categories()
     for cat in categories:
-        path = os.path.join(site_dir, cat)
-        posts_by_category[cat] = [compile_file(os.path.join(path, f)) for f in os.listdir(path) if f.endswith('.md')]
-        posts_by_category[cat] = sorted(posts_by_category[cat], key = lambda x: x[0]['published_at'], reverse=True)
-    posts = sum(posts_by_category.values(), [])
-    posts = sorted(posts, key = lambda x: x[0]['published_at'], reverse=True)
+        cat_posts = [Post(compile_file(f)) for f in fm.raw_for_category(cat)]
+        posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
+    posts = sum(posts_by_cat.values(), [])
+    posts = sorted(posts, key=lambda p: p.published_at, reverse=True)
 
     # Remove existing build
-    build_dir = os.path.join(site_dir, '.build')
-    if os.path.exists(build_dir):
-        shutil.rmtree(build_dir)
-    os.makedirs(build_dir)
+    if os.path.exists(fm.build_dir):
+        shutil.rmtree(fm.build_dir)
+    os.makedirs(fm.build_dir)
 
     # Make category folders
     for cat in categories:
-        cat_dir = os.path.join(build_dir, cat)
-        os.makedirs(cat_dir)
+        os.makedirs(fm.category_dir(cat))
 
     # Write files
-    for post, build_slug in posts:
-        post_path = os.path.join(build_dir, build_slug + '.json')
+    for p in posts:
+        post_path = fm.post_path(conf, p)
         json.dump(post, open(post_path, 'w'))
 
     # Write RSS files
-    rss_dir = os.path.join(build_dir, 'rss')
-    os.makedirs(rss_dir)
+    os.makedirs(fm.rss_dir)
     for cat in categories:
-        rss_path = os.path.join(rss_dir, '{}.xml'.format(cat))
-        new_posts = [p for p, bs in posts_by_category[cat] if not p['draft']][:20]
-        compile_rss(new_posts, conf, rss_path)
+        new_posts = [p for p in posts_by_cat[cat] if not p.draft][:20]
+        compile_rss(new_posts, conf, fm.rss_path(cat))
 
-    new_posts = [p for p, bs in posts if not p['draft']][:20]
-    rss_path = os.path.join(rss_dir, 'rss.xml')
-    compile_rss(new_posts, conf, rss_path)
+    new_posts = [p for p in posts if not p.draft][:20]
+    compile_rss(new_posts, conf, fm.rss_path('rss'))
 
 
 def compile_file(path):
@@ -90,11 +84,11 @@ def compile_file(path):
 
     # Lead with the published timestamp so the
     # built files are in the right order
-    build_slug = '{2}/{0}{1}_{3}'.format('D' if meta['draft'] else '',
-                                         meta['published_ts'],
-                                         category,
-                                         slug)
-    return data, build_slug
+    data['build_slug'] = '{2}/{0}{1}_{3}'.format('D' if meta['draft'] else '',
+                                                 meta['published_ts'],
+                                                 category,
+                                                 slug)
+    return data
 
 
 def extract_metadata(raw):
