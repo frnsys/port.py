@@ -8,6 +8,7 @@ from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
 from distutils.util import strtobool
 from port.md2html import compile_markdown
+from port.models import Post
 from port.fs import FileManager
 
 meta_re = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
@@ -42,8 +43,8 @@ def build_site(conf):
 
     # Write files
     for p in posts:
-        post_path = fm.post_path(conf, p)
-        json.dump(post, open(post_path, 'w'))
+        post_path = fm.post_path(p)
+        json.dump(p._data, open(post_path, 'w'))
 
     # Write RSS files
     os.makedirs(fm.rss_dir)
@@ -142,10 +143,10 @@ def compile_rss(posts, conf, outpath):
     Compile a list of Posts to the specified outpath.
     """
     items = [RSSItem(
-        title=p['title'],
-        link=os.path.join(conf['SITE_URL'], p['category'], p['slug']),
-        description=p['html'],
-        pubDate=p['published_at']
+        title=p.title,
+        link=os.path.join(conf['SITE_URL'], p.category.slug, p.slug),
+        description=p.html,
+        pubDate=p.published_at
     ) for p in posts]
 
     rss = RSS2(

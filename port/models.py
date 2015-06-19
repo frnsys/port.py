@@ -9,6 +9,8 @@ isodate_re = re.compile(r'^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(.\d{6})?$')
 
 class Post():
     def __init__(self, data):
+        self._data = data
+
         for k, v in data.items():
             # Check if it's a isoformat datetime
             if isinstance(v, str) and isodate_re.search(v) is not None:
