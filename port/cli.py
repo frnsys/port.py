@@ -16,6 +16,17 @@ def site_config(site_name):
     path = os.path.join(base, site_name + '.json')
     return json.load(open(path, 'r'))
 
+def app_for_site(site_name, port):
+    """
+    see host.py
+    """
+    conf = site_config(site_name)
+    site_dir = conf['SITE_DIR']
+    theme = os.path.join(base, 'themes', conf['THEME'])
+    app = create_app(static_folder=theme, template_folder=theme, **conf)
+    app.fm = FileManager(site_dir)
+    return app
+
 
 @click.group()
 def cli():
@@ -29,13 +40,7 @@ def serve(site_name, port):
     """
     Serve a site
     """
-    conf = site_config(site_name)
-
-    site_dir = conf['SITE_DIR']
-    theme = os.path.join(base, 'themes', conf['THEME'])
-    app = create_app(static_folder=theme, template_folder=theme, **conf)
-
-    app.fm = FileManager(site_dir)
+    app = app_for_site(site_name, port)
     app.run(host='0.0.0.0', debug=True, port=port)
 
 
