@@ -39,7 +39,7 @@ def category(category):
     conf = current_app.config
     per_page = int(conf.get('PER_PAGE'))
 
-    posts = Post.category(category)
+    posts = Post.for_category(category)
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)

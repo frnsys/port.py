@@ -22,11 +22,11 @@ class Post():
     @classmethod
     def all(cls):
         categories = cls.categories()
-        posts = sum([cls.category(c) for c in categories], [])
+        posts = sum([cls.for_category(c) for c in categories], [])
         return cls._sort(posts)
 
     @classmethod
-    def category(cls, category):
+    def for_category(cls, category):
         """
         Get posts for a category
         """
