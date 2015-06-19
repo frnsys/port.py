@@ -9,8 +9,6 @@ setup(
     license='MIT',
 
     zip_safe=True,
-    package_data={'': ['themes']},
-    include_package_data=True,
     packages=find_packages(),
     install_requires=[
         'click',
