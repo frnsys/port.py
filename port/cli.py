@@ -2,6 +2,7 @@ import os
 import json
 import click
 import shutil
+import subprocess
 from click import echo
 from port.server import create_app
 from port.compile import build_site
@@ -132,3 +133,25 @@ def build(site_name):
     build_site(conf)
 
     echo('Built!')
+
+
+@cli.command()
+@click.argument('site_name')
+@click.argument('remote')
+def sync(site_name, remote):
+    """
+    A convenience command to sync a site's files to a remote folder
+    """
+    # Load site-specific config
+    path = os.path.join(base, site_name + '.json')
+    conf = json.load(open(path, 'r'))
+
+    # Prep paths
+    site_dir = conf['SITE_DIR']
+
+    subprocess.call([
+        'rsync',
+        '-ravu',
+        site_dir + '/',
+        remote
+    ])

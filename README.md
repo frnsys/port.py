@@ -148,6 +148,19 @@ The `<user>` arg is so that `supervisor` can locate the `port` site config and t
 What this does is generate the necessary config files to host the site and restart `nginx` and `supervisor`.
 
 
+#### Syncing to a remote folder
+
+I work on my posts on my local machine, and when they are ready, I build them and then sync the local folder to my remote server which hosts the live site.
+
+There's a convenience command for doing this:
+
+    $ port sync <site name> <remote>
+
+For example:
+
+    $ port sync my_new_site user@mysite.com:~/my_site
+
+
 #### Unhosting
 
 If you want to "unhost" the site, you can just run:
