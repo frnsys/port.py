@@ -18,7 +18,7 @@ def index():
     files = [f for f in os.listdir(build_dir)
              if f.endswith('.json')
              and not f.startswith('D')]
-    files.reverse()
+    files = sorted(files, key=lambda f: int(f.split('_')[0]), reverse=True)
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)
@@ -49,7 +49,7 @@ def category(category):
              if f.endswith('.json')
              and '_{}_'.format(category) in f
              and not f.startswith('D')]
-    files.reverse()
+    files = sorted(files, key=lambda f: int(f.split('_')[0]), reverse=True)
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)
