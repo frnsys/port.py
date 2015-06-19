@@ -10,8 +10,8 @@ def index():
     RSS feed for everything
     """
     conf = current_app.config
-    site_dir = conf.get('SITE_DIR')
-    rss_path = os.path.join(site_dir, '.build/rss')
+    build_dir = conf.get('BUILD_DIR')
+    rss_path = os.path.join(build_dir, 'rss')
     return send_from_directory(rss_path, 'rss.xml')
 
 
@@ -21,6 +21,6 @@ def category(category):
     RSS feed for a category
     """
     conf = current_app.config
-    site_dir = conf.get('SITE_DIR')
-    rss_path = os.path.join(site_dir, '.build/rss')
+    build_dir = conf.get('BUILD_DIR')
+    rss_path = os.path.join(build_dir, 'rss')
     return send_from_directory(rss_path, '{}.xml'.format(category))

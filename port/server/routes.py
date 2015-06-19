@@ -1,4 +1,3 @@
-import os
 import math
 from flask import Blueprint, request, render_template, current_app, abort, send_from_directory
 from port.models import Post, Meta
@@ -12,19 +11,9 @@ def index():
     Index for all categories
     """
     conf = current_app.config
-    build_dir = conf.get('BUILD_DIR')
     per_page = int(conf.get('PER_PAGE'))
 
-    categories = [c for c in os.listdir(build_dir)
-                    if c != 'rss']
-
-    files = []
-    for cat in categories:
-        cat_dir = os.path.join(build_dir, cat)
-        files += [(f, cat) for f in os.listdir(cat_dir)
-                           if f.endswith('.json')
-                           and not f.startswith('D')]
-    files = sorted(files, key=lambda f: int(f[0].split('_')[0]), reverse=True)
+    posts = Post.all()
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)
@@ -32,14 +21,14 @@ def index():
     n = per_page * page
     m = per_page * (page + 1)
 
-    N = len(files)
-    if n >= len(files):
+    N = len(posts)
+    if n >= len(posts):
         abort(404)
 
-    posts = [Post(os.path.join(build_dir, cat, f)) for f, cat in files[n:m]]
+    posts = posts[n:m]
     return render_template('index.html', posts=posts, page=page+1,
                            last_page=math.ceil(N/per_page),
-                           site_data=Meta(conf, request))
+                           site_data=Meta(request))
 
 
 @bp.route('/<category>')
@@ -48,14 +37,9 @@ def category(category):
     Index for a category
     """
     conf = current_app.config
-    build_dir = conf.get('BUILD_DIR')
     per_page = int(conf.get('PER_PAGE'))
 
-    cat_dir = os.path.join(build_dir, category)
-    files = [f for f in os.listdir(cat_dir)
-             if f.endswith('.json')
-             and not f.startswith('D')]
-    files = sorted(files, key=lambda f: int(f.split('_')[0]), reverse=True)
+    posts = Post.category(category)
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)
@@ -63,14 +47,14 @@ def category(category):
     n = per_page * page
     m = per_page * (page + 1)
 
-    N = len(files)
+    N = len(posts)
     if n >= N:
         abort(404)
 
-    posts = [Post(os.path.join(cat_dir, f)) for f in files[n:m]]
+    posts = posts[n:m]
     return render_template('category.html', posts=posts, page=page+1,
                            last_page=math.ceil(N/per_page),
-                           site_data=Meta(conf, request))
+                           site_data=Meta(request))
 
 
 @bp.route('/<category>/<slug>')
@@ -79,17 +63,10 @@ def post(category, slug):
     Show a single post;
     The slug is the filename of the original markdown file
     """
-    conf = current_app.config
-    build_dir = current_app.config.get('BUILD_DIR')
-    cat_dir = os.path.join(build_dir, category)
-
-    # meh
-    for f in os.listdir(cat_dir):
-        if slug in f:
-            path = os.path.join(cat_dir, f)
-            post = Post(path)
-            return render_template('single.html', post=post,
-                                   site_data=Meta(conf, request))
+    post = Post.single(category, slug)
+    if post is not None:
+        return render_template('single.html', post=post,
+                                site_data=Meta(request))
 
     abort(404)
 
