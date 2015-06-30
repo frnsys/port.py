@@ -175,3 +175,14 @@ If you're having issues with hosting the site, these logs help:
     $ tail -f /var/log/supervisor/supervisord.log
     $ tail -f /var/log/nginx/error.log
     $ tail -f /var/log/port_<site name>.log
+
+
+---
+
+## Pro tips
+
+- If you're using vim, you can configure a keybinding to drop in the current datetime for you, which is useful for setting the `published_at` value in a post's yaml frontmatter, e.g.:
+
+    nnoremap <leader>, "=strftime("%m.%d.%Y %H:%M")<CR>P
+
+
