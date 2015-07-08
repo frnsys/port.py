@@ -15,6 +15,7 @@ Installation is easy:
 - Supports **GitHub-Flavored** Markdown
 - Supports **MathJax** syntax (in the default theme)
 - Includes **RSS feeds** for each category and all posts
+- Includes search
 
 
 ## Creating a site
@@ -85,6 +86,10 @@ The new site process will walk you through the basic configuration, which create
 
 - Draft posts are not listed in the category and index pages (and RSS feeds) but can be accessed by their direct url
 - Posts are ordered by reverse chron
+- Arbitrary category metadata can be added for each category by creating a `meta.yaml` file in the category's directory. You can override the template used for a category here and/or the posts per page value, e.g.:
+
+    template: a_special_template.html
+    per_page: 20
 
 ---
 
@@ -99,6 +104,7 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 - `category.html` - used to render category pages
 - `index.html` - used to render the home page
 - `single.html` - used to render single post pages
+- `search.html` - used to render search results
 - `404.html` - 404 error page
 - `500.html` - 500 error page
 

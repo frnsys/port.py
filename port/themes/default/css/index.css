@@ -37,7 +37,7 @@ header a:visited {
     text-decoration: none;
 }
 
-.post:not(:first-child) {
+.post:not(:first-of-type) {
     margin-top: 8em;
     padding-top: 5em;
     border-top: 6px solid #eee;
@@ -57,6 +57,11 @@ header a:visited {
 .error {
     text-align: center;
     margin: 4em;
+}
+
+.search-match {
+    color: #FC3A37;
+    font-weight: bold;
 }
 
 table {

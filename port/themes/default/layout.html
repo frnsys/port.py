@@ -14,6 +14,9 @@
 <body>
 
     <header><a href="/">{{ site_data.site_name }}</a></header>
+    <form action="/search">
+        <input type="text" name="query" placeholder="Search">
+    </form>
 
     {% block content %}
     {% endblock %}

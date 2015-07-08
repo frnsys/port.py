@@ -1,4 +1,6 @@
 import math
+import whoosh
+from whoosh.qparser import QueryParser
 from flask import Blueprint, request, render_template, current_app, abort, send_from_directory
 from port.models import Post, Meta, Category
 
@@ -16,7 +18,48 @@ def index():
     posts = Post.all()
     posts, page, last_page = _pagination(posts, per_page)
 
-    return render_template('index.html', posts=posts, page=page+1,
+    return render_template('index.html',
+                           posts=posts, page=page+1,
+                           last_page=last_page,
+                           site_data=Meta(request))
+
+
+@bp.route('/favicon.ico')
+def favicon():
+    return send_from_directory(current_app.fm.asset_dir, 'favicon.ico')
+
+
+@bp.route('/search')
+def search():
+    """
+    Search posts
+    """
+    conf = current_app.config
+    per_page = int(conf.get('PER_PAGE'))
+    query = request.args.get('query', '')
+
+    posts = []
+    ix = whoosh.index.open_dir(current_app.fm.index_dir)
+    with ix.searcher() as searcher:
+        q = QueryParser('content', ix.schema).parse(query)
+        results = searcher.search(q, limit=None)
+        results.fragmenter.charlimit = None
+        results.fragmenter.surround = 100
+        results.formatter = whoosh.highlight.HtmlFormatter(tagname='span', classname='search-match')
+        for r in results:
+            post = Post.single(r['category'], r['slug'])
+            post.search_highlight = r.highlights('content', text=post.plain)
+
+            # If the result is only in the title, the highlight will be empty
+            if not post.search_highlight:
+                post.search_highlight = post.plain[:200]
+
+            posts.append(post)
+
+    posts, page, last_page = _pagination(posts, per_page)
+
+    return render_template('search.html',
+                           posts=posts, page=page+1,
                            last_page=last_page,
                            site_data=Meta(request))
 
@@ -35,7 +78,8 @@ def category(category):
     template = cat.template if hasattr(cat, 'template') else 'category.html'
 
     posts, page, last_page = _pagination(posts, per_page)
-    return render_template(template, posts=posts, page=page+1,
+    return render_template(template,
+                           posts=posts, page=page+1,
                            category=cat,
                            last_page=last_page,
                            site_data=Meta(request))
@@ -49,8 +93,9 @@ def post(category, slug):
     """
     post = Post.single(category, slug)
     if post is not None:
-        return render_template('single.html', post=post,
-                                site_data=Meta(request))
+        return render_template('single.html',
+                               post=post,
+                               site_data=Meta(request))
 
     abort(404)
 
