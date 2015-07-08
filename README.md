@@ -76,6 +76,7 @@ The main endpoints are:
 - `/<category name>/<post slug>` - a single post
 - `/rss` - the rss feed for all your posts (20 most recent published)
 - `/rss/<category name>` - the rss feed for one category (20 most recent published)
+- `/search?query=<query>` - the search endpoint
 
 
 ## Configuration
