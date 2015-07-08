@@ -19,17 +19,33 @@ class FileManager():
         """
         return os.path.join(self.rss_dir, '{}.xml'.format(category))
 
-    def post_path(self, post):
+    def post_path(self, build_slug):
         """
         Path to a compiled post
         """
-        return os.path.join(self.build_dir, post.build_slug + '.json')
+        return os.path.join(self.build_dir, build_slug + '.json')
 
     def category_dir(self, category):
         """
         Path to a compiled category
         """
         return os.path.join(self.build_dir, category)
+
+    def category_meta_path(self, category):
+        """
+        Path to compiled category meta
+        """
+        return os.path.join(self.build_dir, category, 'meta.json')
+
+    def raw_category_meta_path(self, category):
+        """
+        Path to uncompiled category meta
+        Returns None if no meta is specified
+        """
+        meta_path = os.path.join(self.site_dir, category, 'meta.yaml')
+        if not os.path.exists(meta_path):
+            return None
+        return meta_path
 
     def raw_categories(self):
         """
@@ -46,7 +62,7 @@ class FileManager():
         """
         path = os.path.join(self.site_dir, category)
         return [os.path.join(path, f) for f in os.listdir(path)
-                                    if f.endswith('.md')]
+                                      if f.endswith('.md')]
 
     def posts_for_category(self, category):
         """
@@ -55,6 +71,7 @@ class FileManager():
         cat_dir = self.category_dir(category)
         return [os.path.join(cat_dir, f) for f in os.listdir(cat_dir)
                                          if f.endswith('.json')
+                                         and f != 'meta.json'
                                          and not f.startswith('D')]
 
     def find_post(self, category, slug):

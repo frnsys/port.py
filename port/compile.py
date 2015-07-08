@@ -8,7 +8,6 @@ from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
 from distutils.util import strtobool
 from port.md2html import compile_markdown
-from port.models import Post
 from port.fs import FileManager
 
 meta_re = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
@@ -26,11 +25,13 @@ def build_site(conf):
     # Get all files and compile
     posts_by_cat = {}
     categories = fm.raw_categories()
+    metas_by_cat = {}
     for cat in categories:
-        cat_posts = [Post(compile_file(f)) for f in fm.raw_for_category(cat)]
-        posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
+        cat_posts = [compile_file(f) for f in fm.raw_for_category(cat)]
+        posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p['published_at'], reverse=True)
+        metas_by_cat[cat] = compile_category_meta(fm.raw_category_meta_path(cat))
     posts = sum(posts_by_cat.values(), [])
-    posts = sorted(posts, key=lambda p: p.published_at, reverse=True)
+    posts = sorted(posts, key=lambda p: p['published_at'], reverse=True)
 
     # Remove existing build
     if os.path.exists(fm.build_dir):
@@ -41,18 +42,23 @@ def build_site(conf):
     for cat in categories:
         os.makedirs(fm.category_dir(cat))
 
-    # Write files
+    # Write category meta files
+    for cat, meta in metas_by_cat.items():
+        meta_path = fm.category_meta_path(cat)
+        json.dump(meta, open(meta_path, 'w'))
+
+    # Write post files
     for p in posts:
-        post_path = fm.post_path(p)
-        json.dump(p._data, open(post_path, 'w'))
+        post_path = fm.post_path(p['build_slug'])
+        json.dump(p, open(post_path, 'w'))
 
     # Write RSS files
     os.makedirs(fm.rss_dir)
     for cat in categories:
-        new_posts = [p for p in posts_by_cat[cat] if not p.draft][:20]
+        new_posts = [p for p in posts_by_cat[cat] if not p['draft']][:20]
         compile_rss(new_posts, conf, fm.rss_path(cat))
 
-    new_posts = [p for p in posts if not p.draft][:20]
+    new_posts = [p for p in posts if not p['draft']][:20]
     compile_rss(new_posts, conf, fm.rss_path('rss'))
 
 
@@ -90,6 +96,16 @@ def compile_file(path):
                                                  category,
                                                  slug)
     return data
+
+
+def compile_category_meta(path):
+    """
+    Compile category meta file
+    """
+    if path is None:
+        return {}
+    else:
+        return yaml.load(open(path, 'r'))
 
 
 def extract_metadata(raw):
@@ -143,10 +159,10 @@ def compile_rss(posts, conf, outpath):
     Compile a list of Posts to the specified outpath.
     """
     items = [RSSItem(
-        title=p.title,
-        link=os.path.join(conf['SITE_URL'], p.category.slug, p.slug),
-        description=p.html,
-        pubDate=p.published_at
+        title=p['title'],
+        link=os.path.join(conf['SITE_URL'], p['category'], p['slug']),
+        description=p['html'],
+        pubDate=p['published_at']
     ) for p in posts]
 
     rss = RSS2(

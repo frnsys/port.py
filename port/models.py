@@ -16,7 +16,7 @@ class Post():
                 v = parse(v)
             if k == 'category':
                 v = Category(v)
-            setattr(self, k, v)
+            setattr(self, k.lower(), v)
 
     @classmethod
     def from_file(cls, path):
@@ -51,7 +51,6 @@ class Post():
         """
         Sort by reverse chron
         """
-        # ugh
         return sorted(posts, key=lambda p: p.published_at, reverse=True)
 
     @classmethod
@@ -63,6 +62,9 @@ class Post():
 
 
 class Meta():
+    """
+    Site-wide meta data
+    """
     def __init__(self, request):
         conf = current_app.config
         for k, v in conf.items():
@@ -74,6 +76,14 @@ class Meta():
 
 class Category():
     def __init__(self, slug):
+        # Load category meta data
+        meta_path = current_app.fm.category_meta_path(slug)
+        meta = json.load(open(meta_path, 'r'))
+        for k, v in meta.items():
+            setattr(self, k.lower(), v)
+
         self.slug = slug
-        self.name = slug.replace('_', ' ')
         self.url = '/{}'.format(slug)
+
+        if not hasattr(self, 'name'):
+            self.name = slug.replace('_', ' ')

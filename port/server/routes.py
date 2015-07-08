@@ -1,6 +1,6 @@
 import math
 from flask import Blueprint, request, render_template, current_app, abort, send_from_directory
-from port.models import Post, Meta
+from port.models import Post, Meta, Category
 
 bp = Blueprint('main', __name__)
 
@@ -37,9 +37,12 @@ def category(category):
     Index for a category
     """
     conf = current_app.config
-    per_page = int(conf.get('PER_PAGE'))
 
+    cat = Category(category)
     posts = Post.for_category(category)
+
+    per_page = cat.per_page if hasattr(cat, 'per_page') else int(conf.get('PER_PAGE'))
+    template = cat.template if hasattr(cat, 'template') else 'category.html'
 
     page = int(request.args.get('p', 1))
     page = max(page - 1, 0)
@@ -52,7 +55,8 @@ def category(category):
         abort(404)
 
     posts = posts[n:m]
-    return render_template('category.html', posts=posts, page=page+1,
+    return render_template(template, posts=posts, page=page+1,
+                           category=cat,
                            last_page=math.ceil(N/per_page),
                            site_data=Meta(request))
 
