@@ -19,6 +19,7 @@ setup(
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
+        'whoosh'
     ],
     entry_points='''
         [console_scripts]

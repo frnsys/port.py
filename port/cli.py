@@ -95,7 +95,7 @@ def create(site_name):
     site_name = input('What will you call your site? ')
     site_url = input('What url will your site be at? ')
     site_desc = input('How would you describe your site? ')
-    per_page = input('How many posts should be shown per page? ')
+    per_page = input('How many posts should be shown per page? (use 0 to show all) ')
     theme = input('What theme will you use? Select from {} '.format(themes))
 
     if theme not in themes:

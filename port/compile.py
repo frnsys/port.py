@@ -4,6 +4,8 @@ import json
 import yaml
 import shutil
 from datetime import datetime
+from whoosh import index
+from whoosh.fields import TEXT, Schema
 from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
 from distutils.util import strtobool
@@ -52,6 +54,10 @@ def build_site(conf):
         post_path = fm.post_path(p['build_slug'])
         json.dump(p, open(post_path, 'w'))
 
+    # Write search index
+    os.makedirs(fm.index_dir)
+    compile_search_index(posts, fm.index_dir)
+
     # Write RSS files
     os.makedirs(fm.rss_dir)
     for cat in categories:
@@ -77,6 +83,7 @@ def compile_file(path):
     html = compile_markdown(raw)
 
     data = {
+        'plain': raw,
         'html': html,
         'slug': slug,
         'category': category,
@@ -174,3 +181,24 @@ def compile_rss(posts, conf, outpath):
     )
 
     rss.write_xml(open(outpath, 'w'))
+
+
+def compile_search_index(posts, outpath):
+    """
+    Compiles the search index of the posts.
+    """
+    schema = Schema(
+                slug=TEXT(stored=True),
+                category=TEXT(stored=True),
+                content=TEXT(stored=True)
+    )
+
+    ix = index.create_in(outpath, schema)
+
+    with ix.writer() as writer:
+        for post in posts:
+            writer.add_document(
+                slug     = post['slug'],
+                category = post['category'],
+                content  = '\n'.join([post['title'], post['plain']]),
+            )
