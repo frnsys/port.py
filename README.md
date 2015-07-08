@@ -79,7 +79,7 @@ The main endpoints are:
 
 ## Configuration
 
-The new site process will walk you through the basic configuration, which creates a JSON file in the `~/.port` folder. You can edit this JSON file to update your config, or add in arbitrary data which gets passed to your templates as a dictionary called `site_data`.
+The new site process will walk you through the basic configuration, which creates a yaml file in the `~/.port` folder. You can edit this yaml file to update your config, or add in arbitrary data which gets passed to your templates as a dictionary called `site_data`.
 
 ## Miscellany
 
@@ -106,7 +106,7 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 
 Within each of these templates, you have access to the following variables:
 
-- `site_data` - an object consisting of the data stored in your site's JSON config file and additional metadata, such as `categories`. Note that the attribute names corresponding to keys in your site's config are lowercase (e.g. if you have `SITE_NAME` in your config, it is accessed at `site_data.site_name`)
+- `site_data` - an object consisting of the data stored in your site's yaml config file and additional metadata, such as `categories`. Note that the attribute names corresponding to keys in your site's config are lowercase (e.g. if you have `SITE_NAME` in your config, it is accessed at `site_data.site_name`)
 - post data: `single.html` includes a `post` object, `category.html` and `index.html` include a `posts` list
 - pagination data (`category.html` and `index.html`): you get a `page` variable (current page number) and a `last_page` variable (max page number)
 
@@ -176,6 +176,7 @@ If you're having issues with hosting the site, these logs help:
     $ tail -f /var/log/nginx/error.log
     $ tail -f /var/log/port_<site name>.log
 
+You should also set `DEBUG: true` in your site's config when debugging.
 
 ---
 
