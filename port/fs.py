@@ -8,7 +8,7 @@ class FileManager():
     """
 
     def __init__(self, site_dir):
-        self.site_dir = site_dir
+        self.site_dir = os.path.expanduser(site_dir)
         self.build_dir = os.path.join(self.site_dir, '.build')
         self.rss_dir = os.path.join(self.build_dir, 'rss')
         self.asset_dir = os.path.join(self.site_dir, 'assets')
