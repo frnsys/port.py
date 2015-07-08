@@ -14,32 +14,53 @@ class FileManager():
         self.asset_dir = os.path.join(self.site_dir, 'assets')
 
     def rss_path(self, category):
+        """
+        Path to compiled RSS files for category or 'all'
+        """
         return os.path.join(self.rss_dir, '{}.xml'.format(category))
 
     def post_path(self, post):
+        """
+        Path to a compiled post
+        """
         return os.path.join(self.build_dir, post.build_slug + '.json')
 
     def category_dir(self, category):
+        """
+        Path to a compiled category
+        """
         return os.path.join(self.build_dir, category)
 
     def raw_categories(self):
+        """
+        Uncompiled category names
+        """
         return [c for c in os.listdir(self.site_dir)
                 if os.path.isdir(os.path.join(self.site_dir, c))
                 and c != 'assets'
                 and not c.startswith('.')]
 
     def raw_for_category(self, category):
+        """
+        Paths for uncompiled posts for a category
+        """
         path = os.path.join(self.site_dir, category)
         return [os.path.join(path, f) for f in os.listdir(path)
                                     if f.endswith('.md')]
 
     def posts_for_category(self, category):
+        """
+        Paths for compiled posts for a category
+        """
         cat_dir = self.category_dir(category)
         return [os.path.join(cat_dir, f) for f in os.listdir(cat_dir)
                                          if f.endswith('.json')
                                          and not f.startswith('D')]
 
     def find_post(self, category, slug):
+        """
+        Find compiled post matching the category and slug
+        """
         cat_dir = self.category_dir(category)
 
         # meh
@@ -48,5 +69,8 @@ class FileManager():
                 return os.path.join(cat_dir, f)
 
     def categories(self):
+        """
+        Compiled category names
+        """
         return [c for c in os.listdir(self.build_dir)
                   if c != 'rss']
