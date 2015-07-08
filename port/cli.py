@@ -25,6 +25,11 @@ def app_for_site(site_name, port):
     theme = os.path.join(base, 'themes', conf['THEME'])
     app = create_app(static_folder=theme, template_folder=theme, **conf)
     app.fm = FileManager(site_dir)
+
+    if conf.get('DEBUG', False):
+        app['DEBUG'] = True
+        app['PROPAGATE_EXCEPTIONS'] = True
+
     return app
 
 
