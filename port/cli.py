@@ -1,5 +1,5 @@
 import os
-import json
+import yaml
 import click
 import shutil
 import subprocess
@@ -13,8 +13,8 @@ base = os.path.expanduser('~/.port')
 
 
 def site_config(site_name):
-    path = os.path.join(base, site_name + '.json')
-    return json.load(open(path, 'r'))
+    path = os.path.join(base, site_name + '.yaml')
+    return yaml.load(open(path, 'r'))
 
 def app_for_site(site_name, port):
     """
@@ -79,7 +79,7 @@ def create(site_name):
         default_themes = os.path.join(os.path.dirname(__file__), 'themes')
         shutil.copytree(default_themes, theme_dir)
 
-    path = os.path.join(base, site_name + '.json')
+    path = os.path.join(base, site_name + '.yaml')
     if os.path.exists(path):
         echo('Site already exists! Remove the existing config at {} and retry.'.format(path))
         return
@@ -106,7 +106,7 @@ def create(site_name):
         'THEME': theme
     }
 
-    json.dump(conf, open(path, 'w'), indent=4, sort_keys=True)
+    yaml.dump(conf, open(path, 'w'), default_flow_style=False)
 
     # Create the site directories
     if not os.path.exists(site_dir):
