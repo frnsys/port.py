@@ -84,7 +84,11 @@ class FileManager():
         # meh
         for f in os.listdir(cat_dir):
             # Exclude the file extension and the timestamp
-            if slug == f[11:-5]:
+            if f[0] == 'D':
+                fslug = f[12:-5]
+            else:
+                fslug = f[11:-5]
+            if slug == fslug:
                 return os.path.join(cat_dir, f)
 
     def categories(self):
