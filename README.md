@@ -144,7 +144,13 @@ See the [default theme](https://github.com/ftzeng/port/tree/master/themes/defaul
 
 ## Hosting on a server
 
-A convenience command is included for hosting your site on a server with `nginx`, `uwsgi`, and `supervisor`:
+A convenience command is included for hosting your site on a server.
+
+First, install the following on your server:
+
+    $ sudo apt-get install uswgi nginx supervisor python3 python3-pip uwsgi-plugin-python3
+
+Then run:
 
     $ port host <site name> <host name> <user> [--port]
 
