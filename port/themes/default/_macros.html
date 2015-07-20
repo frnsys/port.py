@@ -6,6 +6,13 @@
     </div>
 {%- endmacro %}
 
+{% macro render_page(page) -%}
+    <div class="page">
+        <h1><a href="{{ page.url }}">{{ page.title_html|safe }}</a></h1>
+        {{ page.html|safe }}
+    </div>
+{%- endmacro %}
+
 {% macro pagination(page, last_page) -%}
     <div class="pagination">
         {% if page > 1 %}

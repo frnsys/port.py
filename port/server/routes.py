@@ -2,7 +2,7 @@ import math
 import whoosh
 from whoosh.qparser import QueryParser
 from flask import Blueprint, request, render_template, current_app, abort, send_from_directory
-from port.models import Post, Meta, Category
+from port.models import Post, Page, Meta, Category
 
 bp = Blueprint('main', __name__)
 
@@ -64,15 +64,27 @@ def search():
                            site_data=Meta(request))
 
 
-@bp.route('/<category>')
-def category(category):
+@bp.route('/<slug>')
+def category_page(slug):
     """
-    Index for a category
+    Index for a category or a single page
     """
     conf = current_app.config
 
-    cat = Category(category)
-    posts = Post.for_category(category)
+    # If we don't recognize this as a category,
+    # try a page
+    if slug not in current_app.fm.categories():
+        try:
+            page = Page(slug)
+        except FileNotFoundError:
+            abort(404)
+        template = page.template if hasattr(page, 'template') else 'page.html'
+        return render_template(template,
+                            page=page,
+                            site_data=Meta(request))
+
+    cat = Category(slug)
+    posts = Post.for_category(slug)
 
     per_page = cat.per_page if hasattr(cat, 'per_page') else int(conf.get('PER_PAGE'))
     template = cat.template if hasattr(cat, 'template') else 'category.html'

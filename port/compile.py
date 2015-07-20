@@ -24,16 +24,20 @@ def build_site(conf):
     site_dir = conf['SITE_DIR']
     fm = FileManager(site_dir)
 
-    # Get all files and compile
+    # Get all posts and compile
     posts_by_cat = {}
     categories = fm.raw_categories()
     metas_by_cat = {}
     for cat in categories:
-        cat_posts = [compile_file(f) for f in fm.raw_for_category(cat)]
+        cat_posts = [compile_post(f) for f in fm.raw_for_category(cat)]
         posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p['published_at'], reverse=True)
         metas_by_cat[cat] = compile_category_meta(fm.raw_category_meta_path(cat))
     posts = sum(posts_by_cat.values(), [])
     posts = sorted(posts, key=lambda p: p['published_at'], reverse=True)
+
+    # Compile pages
+    if os.path.exists(fm.pages_dir):
+        pages = [compile_page(p) for p in fm.raw_pages()]
 
     # Remove existing build
     if os.path.exists(fm.build_dir):
@@ -44,6 +48,9 @@ def build_site(conf):
     for cat in categories:
         os.makedirs(fm.category_dir(cat))
 
+    # Make pages folder
+    os.makedirs(fm.bpages_dir)
+
     # Write category meta files
     for cat, meta in metas_by_cat.items():
         meta_path = fm.category_meta_path(cat)
@@ -53,6 +60,11 @@ def build_site(conf):
     for p in posts:
         post_path = fm.post_path(p['build_slug'])
         json.dump(p, open(post_path, 'w'))
+
+    # Write page files
+    for p in pages:
+        page_path = fm.page_path(p['build_slug'])
+        json.dump(p, open(page_path, 'w'))
 
     # Write search index
     os.makedirs(fm.index_dir)
@@ -68,9 +80,9 @@ def build_site(conf):
     compile_rss(new_posts, conf, fm.rss_path('rss'))
 
 
-def compile_file(path):
+def compile_post(path):
     """
-    Compile a markdown file.
+    Compile a markdown post.
     """
     with open(path, 'r') as f:
         raw = f.read()
@@ -102,6 +114,38 @@ def compile_file(path):
                                                  meta['published_ts'],
                                                  category,
                                                  slug)
+    return data
+
+
+def compile_page(path):
+    """
+    Compile a markdown page.
+    """
+    with open(path, 'r') as f:
+        raw = f.read()
+
+    parts = path.split('/')
+    slug = parts[-1].replace('.md', '')
+
+    raw, meta = extract_metadata(raw)
+    html = compile_markdown(raw)
+
+    data = {
+        'plain': raw,
+        'html': html,
+        'slug': slug,
+        'url': '/{}'.format(slug)
+    }
+    data.update(meta)
+
+    for k, v in data.items():
+        if isinstance(v, datetime):
+            data[k] = v.isoformat()
+
+    # Lead with the published timestamp so the
+    # built files are in the right order
+    data['build_slug'] = '{0}_{1}'.format('D' if meta['draft'] else '',
+                                          slug)
     return data
 
 

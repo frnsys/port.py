@@ -71,6 +71,7 @@ class Meta():
             setattr(self, k.lower(), v)
 
         self.categories = [Category(c) for c in current_app.fm.categories()]
+        self.pages = [Page(p) for p in current_app.fm.pages()]
         self.current_url = request.url
 
 
@@ -87,3 +88,17 @@ class Category():
 
         if not hasattr(self, 'name'):
             self.name = slug.replace('_', ' ')
+
+
+class Page():
+    def __init__(self, slug):
+        path = current_app.fm.find_page(slug)
+        if path is None:
+            raise FileNotFoundError
+
+        data = json.load(open(path, 'r'))
+        for k, v in data.items():
+            setattr(self, k.lower(), v)
+
+        self.slug = slug
+        self.url = '/{}'.format(slug)

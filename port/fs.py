@@ -13,6 +13,8 @@ class FileManager():
         self.rss_dir = os.path.join(self.build_dir, '.rss')
         self.asset_dir = os.path.join(self.site_dir, 'assets')
         self.index_dir = os.path.join(self.build_dir, '.searchindex')
+        self.pages_dir = os.path.join(self.site_dir, 'pages')
+        self.bpages_dir = os.path.join(self.build_dir, 'pages')
 
     def rss_path(self, category):
         """
@@ -25,6 +27,12 @@ class FileManager():
         Path to a compiled post
         """
         return os.path.join(self.build_dir, build_slug + '.json')
+
+    def page_path(self, build_slug):
+        """
+        Path to a compiled page
+        """
+        return os.path.join(self.bpages_dir, build_slug + '.json')
 
     def category_dir(self, category):
         """
@@ -54,7 +62,7 @@ class FileManager():
         """
         return [c for c in os.listdir(self.site_dir)
                 if os.path.isdir(os.path.join(self.site_dir, c))
-                and c != 'assets'
+                and c not in ['assets', 'pages']
                 and not c.startswith('.')]
 
     def raw_for_category(self, category):
@@ -93,7 +101,38 @@ class FileManager():
 
     def categories(self):
         """
-        Compiled category names
+        Compiled category slugs
         """
         return [c for c in os.listdir(self.build_dir)
-                  if not c.startswith('.')]
+                  if c != 'pages'
+                  and not c.startswith('.')]
+
+    def pages(self):
+        """
+        Compiled page slugs
+        """
+        return [f.replace('.json', '')[1:] for f in os.listdir(self.bpages_dir)
+                                        if f.endswith('.json')
+                                        and not f.startswith('D')]
+
+    def raw_pages(self):
+        """
+        Uncompiled page files
+        """
+        return [os.path.join(self.pages_dir, f)
+                for f in os.listdir(self.pages_dir)
+                if f.endswith('.md')]
+
+    def find_page(self, slug):
+        """
+        Find compiled page matching the slug
+        """
+        # meh
+        for f in os.listdir(self.bpages_dir):
+            # Exclude the file extension and the timestamp
+            if f[0] == 'D':
+                fslug = f[2:-5]
+            else:
+                fslug = f[1:-5]
+            if slug == fslug:
+                return os.path.join(self.bpages_dir, f)
