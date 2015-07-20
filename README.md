@@ -33,10 +33,11 @@ In there you will notice three folders:
 - `.build` - this is where your compiled posts are stored. This folder is destroyed every build, so don't store anything important there.
 - `assets` - this is where your static files will be served from. So for example you could place `my_image.png` in this folder and then in your posts you could refer to `/assets/my_image.png`.
 - `default_category` - this is the default category folder. You can rename this or replace it.
+- `pages` - this is where you can put non-post/non-category pages, also as markdown. For example, an "About" page.
 
-`port` treats any folder in this directory (except for the `.build` and `assets` folders) as a "category".
+`port` treats any folder in this directory (except for the `.build`, `assets`, and `pages` folders) as a "category".
 
-Within each folder/category, you can write posts as markdown documents (with the `.md` extension).
+Within each folder/category, including the `pages` folder, you can write posts as markdown documents (with the `.md` extension).
 
 When you've added or edited documents, you need to re-build the site:
 
@@ -60,6 +61,8 @@ You should at least include the `published_at` data; without it `port` will defa
 
 Other than that, `port` supports [GitHub-Flavored markdown](https://help.github.com/articles/github-flavored-markdown/), so go wild!
 
+Pages are written exactly the same as posts - in Markdown and with optional YAML front matter as well.
+
 
 ## Running a site
 
@@ -77,6 +80,7 @@ The main endpoints are:
 - `/rss` - the rss feed for all your posts (20 most recent published)
 - `/rss/<category name>` - the rss feed for one category (20 most recent published)
 - `/search?query=<query>` - the search endpoint
+- `/<page>` - a non-post/non-category page
 
 
 ## Configuration
@@ -94,6 +98,8 @@ template: a_special_template.html
 per_page: 20
 ```
 
+- Pages can similarly have a different template specified in their YAML front matter.
+
 ---
 
 ## Themes
@@ -108,6 +114,7 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 - `index.html` - used to render the home page
 - `single.html` - used to render single post pages
 - `search.html` - used to render search results
+- `page.html` - used to render non-post/non-category pages
 - `404.html` - 404 error page
 - `500.html` - 500 error page
 
@@ -130,6 +137,14 @@ Within each of these templates, you have access to the following variables:
 - `draft` - a bool of whether or not the post is a draft
 
 Whatever else you include as metadata in your files will also show up as attributes on the `post` object.
+
+`page` objects are similar, at minimum consisting of:
+
+- `title` - the raw markdown title, extracted from the first `h1` tag
+- `title_html` - the compiled title
+- `html` - the compiled markdown, not including the title and metadata
+- `slug` the post's slug
+- `draft` - a bool of whether or not the post is a draft
 
 #### Static files
 
