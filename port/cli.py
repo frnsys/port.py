@@ -117,7 +117,7 @@ def create(site_name):
     if not os.path.exists(site_dir):
         os.makedirs(site_dir)
 
-    for dir in ['assets', 'default_category']:
+    for dir in ['assets', 'default_category', 'pages']:
         dir_path = os.path.join(site_dir, dir)
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
