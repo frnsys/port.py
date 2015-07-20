@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='port',
-    version='0.2.0',
+    version='0.2.1',
     description='lightweight static blog',
     url='https://github.com/ftzeng/port',
     author='Francis Tseng (@frnsys)',

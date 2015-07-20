@@ -38,6 +38,8 @@ def build_site(conf):
     # Compile pages
     if os.path.exists(fm.pages_dir):
         pages = [compile_page(p) for p in fm.raw_pages()]
+    else:
+        pages = []
 
     # Remove existing build
     if os.path.exists(fm.build_dir):
