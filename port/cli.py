@@ -90,7 +90,7 @@ def create(site_name):
         return
 
 
-    themes = os.listdir(theme_dir)
+    themes = [t for t in os.listdir(theme_dir) if not t.startswith('.')]
     site_dir = input('Where will your site\'s files be located? ')
     site_name = input('What will you call your site? ')
     site_url = input('What url will your site be at? ')
