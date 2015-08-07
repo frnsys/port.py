@@ -53,7 +53,10 @@ server {
 
 def host_site(site_name, host, user, port=5005):
     port_name = 'port_{}'.format(site_name)
-    app_dir = '/tmp'
+
+    app_dir = os.path.expanduser('~/.port/hosted')
+    if not os.path.exists(app_dir):
+        os.makedirs(app_dir)
 
     supervisor_conf = supervisor_tmpl.render(port_name=port_name, app_dir=app_dir, user=user)
     application = application_tmpl.render(site_name=site_name, port=port)
