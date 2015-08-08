@@ -27,8 +27,8 @@ def app_for_site(site_name, port):
     app.fm = FileManager(site_dir)
 
     if conf.get('DEBUG', False):
-        app['DEBUG'] = True
-        app['PROPAGATE_EXCEPTIONS'] = True
+        app.config['DEBUG'] = True
+        app.config['PROPAGATE_EXCEPTIONS'] = True
 
     return app
 
