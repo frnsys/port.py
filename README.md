@@ -213,6 +213,22 @@ You should also set `DEBUG: true` in your site's config when debugging.
 
 ---
 
+## Optional admin frontend
+
+If you really want an admin frontend, a very basic one can be enabled. In your site config, specify the following:
+
+```
+admin: true
+admin_pass: secret_password
+admin_user: admin_username
+```
+
+It will then be accessible at `/control`.
+
+This just uses HTTP basic auth so it is recommended that you use SSL with your site.
+
+---
+
 ## Pro tips
 
 - If you're using vim, you can configure a keybinding to drop in the current datetime for you, which is useful for setting the `published_at` value in a post's yaml frontmatter, e.g.:

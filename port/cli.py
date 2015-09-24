@@ -8,6 +8,7 @@ from port.server import create_app
 from port.compile import build_site
 from port.host import host_site, unhost_site
 from port.fs import FileManager
+from port import admin
 
 base = os.path.expanduser('~/.port')
 
@@ -29,6 +30,13 @@ def app_for_site(site_name, port):
     if conf.get('DEBUG', False):
         app.config['DEBUG'] = True
         app.config['PROPAGATE_EXCEPTIONS'] = True
+
+    if conf.get('ADMIN', False):
+        if 'ADMIN_PASS' not in conf:
+            raise Exception('If admin=True, you must set admin_pass')
+        elif 'ADMIN_USER' not in conf:
+            raise Exception('If admin=True, you must set admin_user')
+        app.register_blueprint(admin.bp)
 
     return app
 
