@@ -13,7 +13,7 @@
             <label for="draft">Draft</label>
             <select name="category">
                 {% for cat in categories %}
-                    {% if cat == post.category %}
+                    {% if cat.slug == post.category.slug %}
                         <option value="{{ cat.slug }}" selected>{{ cat.name }}</option>
                     {% else %}
                         <option value="{{ cat.slug }}">{{ cat.name }}</option>

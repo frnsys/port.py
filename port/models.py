@@ -92,6 +92,7 @@ class Category():
 
 class Page():
     def __init__(self, slug):
+        print(slug)
         path = current_app.fm.find_page(slug)
         if path is None:
             raise FileNotFoundError

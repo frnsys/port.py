@@ -3,7 +3,7 @@ import re
 from functools import wraps
 from datetime import datetime
 from flask import Blueprint, Response, request, current_app, render_template, abort, jsonify, url_for
-from port.models import Post, Meta, Category
+from port.models import Post, Page, Meta, Category
 from port.compile import build_site
 
 bp = Blueprint('admin',
@@ -89,18 +89,36 @@ def posts_for_category(category):
     posts = [Post.from_file(f) for f in files]
     return Post._sort(posts)
 
+def pages():
+    raw_slugs = [f.replace('.json', '') for f in os.listdir(current_app.fm.bpages_dir)
+                                        if f.endswith('.json')]
+    return [slug[2:] if slug[0] == 'D' else slug[1:] for slug in raw_slugs]
+
+class Pages():
+    def __init__(self):
+        self.name = 'Pages'
+        self.slug = 'pages'
+
 
 @bp.route('/<category>', methods=['GET', 'PUT', 'POST'])
 @requires_auth
 def category(category):
     if request.method == 'GET':
-        posts = posts_for_category(category)
-        bigcat = Category(category)
+        if category == 'pages':
+            posts = [Page(slug) for slug in pages()]
+            for p in posts:
+                p.category = Pages()
+            bigcat = Pages()
+        else:
+            posts = posts_for_category(category)
+            bigcat = Category(category)
         return render_template('admin/category.html', posts=posts, category=bigcat)
 
     elif request.method == 'POST':
         data = request.get_json()
         title = data['title']
+        if not title:
+            abort(400)
         slug = slugify(title)
         post = Post.single(category, slug)
         if post is not None:
@@ -140,13 +158,17 @@ def post_path(category, slug):
 @bp.route('/<category>/<slug>', methods=['GET', 'PUT', 'DELETE'])
 @requires_auth
 def post(category, slug):
-    post = Post.single(category, slug)
+    if category == 'pages':
+        post = Page(slug)
+        post.category = Pages()
+    else:
+        post = Post.single(category, slug)
     if post is None:
         abort(404)
 
     if request.method == 'GET':
         return render_template('admin/edit.html', post=post,
-                               categories=Meta(request).categories)
+                               categories=Meta(request).categories + [Pages()])
 
     elif request.method == 'PUT':
         data = request.get_json()

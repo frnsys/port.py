@@ -3,8 +3,12 @@
 {% block content %}
 
     <main role="main">
-        <input type="text" name="title" placeholder="post title"> <button class="js-new-post">new post in this category</button>
-        <input type="text" name="category" placeholder="category name" value="{{ category.name }}"> <button class="js-rename-category">rename this category</button>
+        {% if category.slug != 'pages' %}
+            <input type="text" name="title" placeholder="post title"> <button class="js-new-post">new post in this category</button>
+            <input type="text" name="category" placeholder="category name" value="{{ category.name }}"> <button class="js-rename-category">rename this category</button>
+        {% else %}
+            <input type="text" name="title" placeholder="post title"> <button class="js-new-post">new page</button>
+        {% endif %}
         <ul>
             {% for post in posts %}
                 <li>
@@ -24,6 +28,11 @@
                 var data = {
                     title: $('[name=title]').val()
                 };
+
+                if (!data['title']) {
+                    alert('enter a title');
+                    return
+                }
 
                 $.ajax({
                     url: '/control/{{ category.slug }}',
