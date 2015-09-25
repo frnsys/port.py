@@ -1,0 +1,61 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
+
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box; }
+
+body, html {
+    padding: 0;
+    margin: 0;
+    font-family: 'Open Sans', sans-serif;
+    background: #E8ECEF;
+    color: #111;
+}
+
+main {
+    padding: 2em;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+a, a:visited {
+    color: #88B8CF;
+}
+.home, .home:visited {
+    color: #111;
+    text-decoration: none;
+}
+
+input[type=text] {
+    padding: 0.5em;
+    font-family: 'Open Sans', sans-serif;
+    border: none;
+}
+
+button {
+    background: #88B8CF;
+    border: 1px solid #3a7591;
+    padding: 0.5em;
+    color: #fff;
+}
+
+.posts {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.editor-toolbar, .CodeMirror {
+    background: #fff;
+    padding: 0.5em;
+}
+.editor-toolbar:after, .editor-toolbar:before {
+    background: none !important;
+}
+
+.post [name=title] {
+    font-size: 1.2em;
+    font-weight: bold;
+    width: 100%;
+}

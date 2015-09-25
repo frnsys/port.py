@@ -2,17 +2,15 @@
 
 {% block content %}
 
-    <main role="main">
-        <input type="text" name="category" placeholder="category name"> <button class="js-new-category">new category</button>
+    <input type="text" name="category" placeholder="category name"> <button class="js-new-category">new category</button>
 
-        categories:
-        <ul>
-            <li><a href="/control/pages">pages</a></li>
-            {% for cat in categories %}
-                <li><a href="/control/{{ cat.slug }}">{{ cat.name }}</a></li>
-            {% endfor %}
-        </ul>
-    </main>
+    <h2>categories</h2>
+    <ul class="posts">
+        <li><a href="/control/pages">pages</a></li>
+        {% for cat in categories %}
+            <li><a href="/control/{{ cat.slug }}">{{ cat.name }}</a></li>
+        {% endfor %}
+    </ul>
 
 {% endblock %}
 

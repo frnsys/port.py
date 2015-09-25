@@ -106,7 +106,7 @@ def single_post(category, slug):
 
 
 def category_for_slug(slug):
-    return Pages() if slug == 'pages' else Category(Slug)
+    return Pages() if slug == 'pages' else Category(slug)
 
 
 def posts_for_category(category):

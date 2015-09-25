@@ -2,21 +2,21 @@
 
 {% block content %}
 
-    <main role="main">
-        {% if category.slug != 'pages' %}
-            <input type="text" name="title" placeholder="post title"> <button class="js-new-post">new post in this category</button>
-            <input type="text" name="category" placeholder="category name" value="{{ category.name }}"> <button class="js-rename-category">rename this category</button>
-        {% else %}
-            <input type="text" name="title" placeholder="post title"> <button class="js-new-post">new page</button>
-        {% endif %}
-        <ul>
-            {% for post in posts %}
-                <li>
-                    <a href="{{ post.url }}">{{ post.title }}</a> | <a href="/control/{{ post.category.slug }}/{{ post.slug }}">edit</a>
-                </li>
-            {% endfor %}
-        </ul>
-    </main>
+    {% if category.slug != 'pages' %}
+        <div><input type="text" name="title" placeholder="post title"> <button class="js-new-post">new post in this category</button></div>
+        <div><input type="text" name="category" placeholder="category name" value="{{ category.name }}"> <button class="js-rename-category">rename this category</button></div>
+    {% else %}
+        <div><input type="text" name="title" placeholder="post title"> <button class="js-new-post">new page</button></div>
+    {% endif %}
+
+    <h2>posts in {{ category.name}}</h2>
+    <ul class="posts">
+        {% for post in posts %}
+            <li>
+                <a href="{{ post.url }}">{{ post.title }}</a> | <a href="/control/{{ post.category.slug }}/{{ post.slug }}">edit</a>
+            </li>
+        {% endfor %}
+    </ul>
 
 {% endblock %}
 
