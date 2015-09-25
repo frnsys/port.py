@@ -1,35 +1,16 @@
+import os
 import re
 from functools import wraps
-from flask import Blueprint, Response, request, current_app, render_template, abort, jsonify
-from port.models import Post, Meta
+from datetime import datetime
+from flask import Blueprint, Response, request, current_app, render_template, abort, jsonify, url_for
+from port.models import Post, Meta, Category
+from port.compile import build_site
 
 bp = Blueprint('admin',
                __name__,
                url_prefix='/control',
                static_folder='static',
                template_folder='templates')
-
-"""
-TODO:
-
-[X] http basic auth
-[X] specify admin: true
-[X] specify admin username
-[X] specify admin password
-[ ] new post endpoint
-[ ] delete post endpoint
-[ ] save post endpoint
-[ ] post editor
-    [X] edit body
-    [ ] edit title
-        [ ] should create slug automatically
-        [ ] should move file if necessary
-    [ ] edit category
-        [ ] should move file if necessary
-    [ ] toggle draft
-    [ ] set published datetime
-[ ] new category
-"""
 
 
 def check_auth(username, password):
@@ -67,37 +48,141 @@ def slugify(text, delim=u'_'):
 @requires_auth
 def index():
     if request.method == 'GET':
-        posts = Post.all()
-        return render_template('admin/index.html', posts=posts,
-                            categories=Meta(request).categories)
+        return render_template('admin/index.html', categories=Meta(request).categories)
     elif request.method == 'POST':
         data = request.get_json()
-        slug = slugify(data['title'])
         cat = data['category']
+        cat_slug = slugify(data['category'])
+        cat_dir = os.path.join(current_app.fm.site_dir, cat_slug)
+        os.makedirs(cat_dir)
+        with open(os.path.join(cat_dir, 'meta.yaml'), 'w') as f:
+            f.write(cat_template.format(cat).strip())
+        build_site(current_app.config)
+        return jsonify(success=True)
 
-        post = Post.single(cat, slug)
+
+cat_template = '''
+name: {}
+'''
+
+post_template = '''
+---
+published_at: {published}
+draft: {draft}
+---
+
+# {title}
+
+{body}
+'''
+
+
+def posts_for_category(category):
+    """
+    Custom method for getting compiled posts for a category
+    so we can also get drafts
+    """
+    cat_dir = current_app.fm.category_dir(category)
+    files =  [os.path.join(cat_dir, f) for f in os.listdir(cat_dir)
+                                       if f.endswith('.json')
+                                       and f != 'meta.json']
+    posts = [Post.from_file(f) for f in files]
+    return Post._sort(posts)
+
+
+@bp.route('/<category>', methods=['GET', 'PUT', 'POST'])
+@requires_auth
+def category(category):
+    if request.method == 'GET':
+        posts = posts_for_category(category)
+        bigcat = Category(category)
+        return render_template('admin/category.html', posts=posts, category=bigcat)
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        title = data['title']
+        slug = slugify(title)
+        post = Post.single(category, slug)
         if post is not None:
             abort(409) # conflict
-
         else:
+            ppath = post_path(category, slug)
+            with open(ppath, 'w') as f:
+                f.write(post_template.format(
+                    published=datetime.now().strftime("%m.%d.%Y %H:%M"),
+                    draft='true',
+                    title=title,
+                    body=''
+                ).strip())
+            build_site(current_app.config)
+            return jsonify(slug=slug)
+
+    elif request.method == 'PUT':
+        # rename category
+        data = request.get_json()
+        cat = data['category']
+        cat_slug = slugify(data['category'])
+        cat_dir = os.path.join(current_app.fm.site_dir, category)
+        cat_dir_ = os.path.join(current_app.fm.site_dir, cat_slug)
+        with open(os.path.join(cat_dir, 'meta.yaml'), 'w') as f:
+            f.write(cat_template.format(cat).strip())
+        os.rename(cat_dir, cat_dir_)
+        build_site(current_app.config)
+        return jsonify(slug=cat_slug)
 
 
-@bp.route('/<category>/<slug>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def post_path(category, slug):
+    return os.path.join(current_app.fm.site_dir,
+                        category,
+                        '{}.md'.format(slug))
+
+
+@bp.route('/<category>/<slug>', methods=['GET', 'PUT', 'DELETE'])
 @requires_auth
 def post(category, slug):
+    post = Post.single(category, slug)
+    if post is None:
+        abort(404)
+
     if request.method == 'GET':
-        post = Post.single(category, slug)
-        if post is None:
-            abort(404)
         return render_template('admin/edit.html', post=post,
                                categories=Meta(request).categories)
 
     elif request.method == 'PUT':
         data = request.get_json()
-        slug = slugify(data['title'])
-        print(slug)
-        print(data)
-        return jsonify(success=True)
+        slug_ = slugify(data['title'])
+        cat_ = data['category']
+
+        ppath = post_path(category, slug)
+        with open(ppath, 'w') as f:
+            f.write(post_template.format(
+                published=datetime.now().strftime('%m.%d.%Y %H:%M'),
+                draft=data['draft'],
+                title=data['title'],
+                body=data['body']
+            ).strip())
+
+        ppath_ = post_path(cat_, slug_)
+
+        moved = False
+        if ppath != ppath_:
+            moved = True
+            os.rename(ppath, ppath_)
+
+        build_site(current_app.config)
+
+        if moved:
+            return jsonify(success=True, url=url_for('admin.post', category=cat_, slug=slug_))
+        else:
+            return jsonify(success=True, url=False)
 
     elif request.method == 'DELETE':
-        pass
+        # just in case, don't actually delete the file...
+        trash_dir = os.path.join(current_app.fm.site_dir, '.trash')
+        if not os.path.exists(trash_dir):
+            os.makedirs(trash_dir)
+        ppath = post_path(category, slug)
+        trashed_post_path = os.path.join(trash_dir, '{}__{}.md'.format(slug, datetime.now().strftime('%m_%d_%Y_%H_%M')))
+        os.rename(ppath, trashed_post_path)
+        build_site(current_app.config)
+        return jsonify(success=True)

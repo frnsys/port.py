@@ -5,11 +5,19 @@
     <main role="main">
         <div class="post">
             <a href="{{ post.url }}">preview</a>
-            <button class="save">save</button>
-            <input type="text" placeholder="title" value="{{ post.title }}" class="title"/>
-            <select class="category">
+            <button class="js-save">save</button>
+            <button class="js-delete">delete</button>
+            <input type="text" placeholder="title" value="{{ post.title }}" name="title"/>
+            <input type="text" placeholder="published at" value="{{ post.published_at }}" class="title"/>
+            <input id="draft" name="draft" type="checkbox" value="draft" {% if post.draft %} checked {% endif %}/>
+            <label for="draft">Draft</label>
+            <select name="category">
                 {% for cat in categories %}
-                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
+                    {% if cat == post.category %}
+                        <option value="{{ cat.slug }}" selected>{{ cat.name }}</option>
+                    {% else %}
+                        <option value="{{ cat.slug }}">{{ cat.name }}</option>
+                    {% endif %}
                 {% endfor %}
             </select>
             <textarea>{{ post.plain }}</textarea>
@@ -30,22 +38,37 @@
             var editor = new Editor();
             editor.render();
 
-            $('.save').on('click', function() {
+            $('.js-save').on('click', function() {
                 var data = {
-                    title: $('.title').val(),
+                    title: $('[name=title]').val(),
                     body: editor.codemirror.getValue(),
-                    category: $('.category').val()
+                    category: $('[name=category]').val(),
+                    draft: $('[name=draft]').is(':checked')
                 }
-                console.log(data);
 
                 $.ajax({
-                    url: '/control',
+                    url: '/control/{{ post.category.slug }}/{{ post.slug }}',
                     type: 'PUT',
                     data: JSON.stringify(data),
                     dataType: 'json',
                     contentType: 'application/json; charset=utf-8',
                     success: function(d) {
-                        console.log('success');
+                        if (d['url']) {
+                            window.location.href = d['url'];
+                        }
+                    },
+                    error: function(jqxhr, textStatus, err) {
+                        console.log('error');
+                    }
+                });
+            });
+
+            $('.js-delete').on('click', function() {
+                $.ajax({
+                    url: '/control/{{ post.category.slug }}/{{ post.slug }}',
+                    type: 'DELETE',
+                    success: function(d) {
+                        window.location.href = '/control/{{ post.category.slug }}'
                     },
                     error: function(jqxhr, textStatus, err) {
                         console.log('error');

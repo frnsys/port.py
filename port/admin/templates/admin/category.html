@@ -1,0 +1,66 @@
+{% extends 'admin/layout.html' %}
+
+{% block content %}
+
+    <main role="main">
+        <input type="text" name="title" placeholder="post title"> <button class="js-new-post">new post in this category</button>
+        <input type="text" name="category" placeholder="category name" value="{{ category.name }}"> <button class="js-rename-category">rename this category</button>
+        <ul>
+            {% for post in posts %}
+                <li>
+                    <a href="{{ post.url }}">{{ post.title }}</a> | <a href="/control/{{ post.category.slug }}/{{ post.slug }}">edit</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </main>
+
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(function() {
+            $('.js-new-post').on('click', function() {
+                var data = {
+                    title: $('[name=title]').val()
+                };
+
+                $.ajax({
+                    url: '/control/{{ category.slug }}',
+                    type: 'POST',
+                    data: JSON.stringify(data),
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(d) {
+                        // go to edit post
+                        document.location.href = '/control/{{ category.slug }}/' + d['slug'];
+                    },
+                    error: function(jqxhr, textStatus, err) {
+                        alert(err);
+                    }
+                });
+            });
+
+            $('.js-rename-category').on('click', function() {
+                var data = {
+                    category: $('[name=category]').val()
+                }
+
+                $.ajax({
+                    url: '/control/{{ category.slug }}',
+                    type: 'PUT',
+                    data: JSON.stringify(data),
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(d) {
+                        // go to renamed category
+                        document.location.href = '/control/' + d['slug'];
+                    },
+                    error: function(jqxhr, textStatus, err) {
+                        alert(err);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
