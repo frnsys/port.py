@@ -46,6 +46,11 @@
                     draft: $('[name=draft]').is(':checked')
                 }
 
+                if (!data['title']) {
+                    alert('enter a title');
+                    return
+                }
+
                 $.ajax({
                     url: '/control/{{ post.category.slug }}/{{ post.slug }}',
                     type: 'PUT',

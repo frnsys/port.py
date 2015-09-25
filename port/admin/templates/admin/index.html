@@ -25,6 +25,11 @@
                     category: $('[name=category]').val()
                 };
 
+                if (!data['category']) {
+                    alert('enter a category name');
+                    return
+                }
+
                 $.ajax({
                     url: '/control/',
                     type: 'POST',
