@@ -1,0 +1,57 @@
+{% extends 'admin/layout.html' %}
+
+{% block content %}
+
+    <main role="main">
+        <div class="post">
+            <a href="{{ post.url }}">preview</a>
+            <button class="save">save</button>
+            <input type="text" placeholder="title" value="{{ post.title }}" class="title"/>
+            <select class="category">
+                {% for cat in categories %}
+                    <option value="{{ cat.slug }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <textarea>{{ post.plain }}</textarea>
+        </div>
+    </main>
+
+{% endblock %}
+
+
+{% block scripts %}
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/editor/0.1.0/editor.css">
+    <script src="//cdn.jsdelivr.net/editor/0.1.0/editor.js"></script>
+    <script src="//cdn.jsdelivr.net/editor/0.1.0/marked.js"></script>
+
+    <script>
+        $(function() {
+            // grabs first textarea
+            var editor = new Editor();
+            editor.render();
+
+            $('.save').on('click', function() {
+                var data = {
+                    title: $('.title').val(),
+                    body: editor.codemirror.getValue(),
+                    category: $('.category').val()
+                }
+                console.log(data);
+
+                $.ajax({
+                    url: '/control',
+                    type: 'PUT',
+                    data: JSON.stringify(data),
+                    dataType: 'json',
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(d) {
+                        console.log('success');
+                    },
+                    error: function(jqxhr, textStatus, err) {
+                        console.log('error');
+                    }
+                });
+            });
+        })
+    </script>
+{% endblock %}

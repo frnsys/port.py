@@ -1,10 +1,12 @@
+import re
 from functools import wraps
-from flask import Blueprint, Response, request, current_app, render_template
-from port.models import Post
+from flask import Blueprint, Response, request, current_app, render_template, abort, jsonify
+from port.models import Post, Meta
 
 bp = Blueprint('admin',
                __name__,
                url_prefix='/control',
+               static_folder='static',
                template_folder='templates')
 
 """
@@ -18,7 +20,15 @@ TODO:
 [ ] delete post endpoint
 [ ] save post endpoint
 [ ] post editor
-[ ] message flashing
+    [X] edit body
+    [ ] edit title
+        [ ] should create slug automatically
+        [ ] should move file if necessary
+    [ ] edit category
+        [ ] should move file if necessary
+    [ ] toggle draft
+    [ ] set published datetime
+[ ] new category
 """
 
 
@@ -43,16 +53,51 @@ def requires_auth(f):
     return decorated
 
 
-@bp.route('/')
+punct = r'[ !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+'
+def slugify(text, delim=u'_'):
+    """
+    Simple slugifier
+    """
+    for p in punct:
+        text = text.strip(p)
+    return re.sub(punct, delim, text.lower())
+
+
+@bp.route('/', methods=['GET', 'POST'])
 @requires_auth
 def index():
-    posts = Post.all()
-    return render_template('index.html', posts=posts)
+    if request.method == 'GET':
+        posts = Post.all()
+        return render_template('admin/index.html', posts=posts,
+                            categories=Meta(request).categories)
+    elif request.method == 'POST':
+        data = request.get_json()
+        slug = slugify(data['title'])
+        cat = data['category']
+
+        post = Post.single(cat, slug)
+        if post is not None:
+            abort(409) # conflict
+
+        else:
 
 
-@bp.route('/<slug>', methods=['GET', 'POST', 'PUT'])
+@bp.route('/<category>/<slug>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @requires_auth
-def post():
-    if request.method == 'POST':
-    posts = Post.all()
-    return render_template('edit.html', posts=posts)
+def post(category, slug):
+    if request.method == 'GET':
+        post = Post.single(category, slug)
+        if post is None:
+            abort(404)
+        return render_template('admin/edit.html', post=post,
+                               categories=Meta(request).categories)
+
+    elif request.method == 'PUT':
+        data = request.get_json()
+        slug = slugify(data['title'])
+        print(slug)
+        print(data)
+        return jsonify(success=True)
+
+    elif request.method == 'DELETE':
+        pass
