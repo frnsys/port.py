@@ -149,6 +149,7 @@ def sync(site_name, remote):
 
     # Prep paths
     site_dir = conf['SITE_DIR']
+    site_dir = os.path.expanduser(site_dir)
 
     subprocess.call([
         'rsync',
