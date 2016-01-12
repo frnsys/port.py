@@ -155,7 +155,7 @@ You can refer to static files in your theme at the `/static` url. For instance, 
 
 #### Example
 
-See the [default theme](https://github.com/ftzeng/port/tree/master/port/themes/default) for an example.
+See the [default theme](https://github.com/frnsys/port/tree/master/port/themes/default) for an example.
 
 
 ---
