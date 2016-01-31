@@ -9,6 +9,8 @@ Installation is easy:
 
     $ pip install port
 
+(`port` requires Python 3)
+
 ## Example
 
 An example site is my own blog: [space and times](http://spaceandtim.es/)
