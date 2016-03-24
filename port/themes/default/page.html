@@ -1,6 +1,17 @@
 {% import "_macros.html" as macros %}
 {% extends 'layout.html' %}
 
+{% block meta %}
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ page.title }}">
+    <meta property="og:description" content="{{ page.description }}">
+    <meta property="og:image" content="{{ site_data.site_url }}/{{ page.image }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ page.title }}">
+    <meta name="twitter:description" content="{{ page.description }}">
+    <meta name="twitter:image" content="{{ site_data.site_url }}/{{ page.image }}">
+{% endblock %}
+
 {% block content %}
 
     <main role="main">

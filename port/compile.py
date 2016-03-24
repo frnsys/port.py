@@ -9,12 +9,36 @@ from whoosh.fields import TEXT, Schema
 from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
 from distutils.util import strtobool
+from html.parser import HTMLParser
 from port.md2html import compile_markdown
 from port.fs import FileManager
 
 meta_re = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
 title_re = re.compile(r'^#\s?([^#\n]+)')
+md_img_re = re.compile(r'!\[.*?\]\(`?([^`\(\)]+)`?\)')
 
+class HTMLCleaner(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.fed = []
+    def handle_data(self, d):
+        self.fed.append(d)
+    def get_data(self):
+        return ''.join(self.fed)
+
+def remove_html(html):
+    cleaner = HTMLCleaner()
+    cleaner.feed(html)
+    return cleaner.get_data()
+
+
+def get_description(text, length=140):
+    return text if len(text) <= 140 else text[:139] + '…'
+
+
+def get_images(md):
+    return [img for img in md_img_re.findall(md)]
 
 
 def build_site(conf):
@@ -95,12 +119,18 @@ def compile_post(path):
 
     raw, meta = extract_metadata(raw)
     html = compile_markdown(raw)
+    text = remove_html(html)
+    desc = get_description(text)
+    imgs = get_images(raw)
 
     data = {
         'plain': raw,
         'html': html,
+        'text': text,
         'slug': slug,
+        'description': desc,
         'category': category,
+        'image': imgs[0] if imgs else None,
         'url': '/{}/{}'.format(category, slug)
     }
     data.update(meta)
@@ -131,12 +161,18 @@ def compile_page(path):
 
     raw, meta = extract_metadata(raw)
     html = compile_markdown(raw)
+    text = remove_html(html)
+    desc = get_description(text)
+    imgs = get_images(raw)
 
     data = {
         'plain': raw,
         'html': html,
+        'text': text,
         'slug': slug,
-        'url': '/{}'.format(slug)
+        'description': desc,
+        'url': '/{}'.format(slug),
+        'image': imgs[0] if imgs else None,
     }
     data.update(meta)
 

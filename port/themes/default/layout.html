@@ -4,6 +4,16 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta property="og:url" content="{{ site_data.current_url }}">
+    <meta property="og:site_name" content="{{ site_data.site_name }}">
+    {% block meta %}
+        <meta property="og:type" content="website">
+        <meta property="og:description" content="{{ site_data.site_desc }}">
+        <meta property="og:title" content="{{ site_data.site_name }}">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="{{ site_data.site_name }}">
+        <meta name="twitter:description" content="{{ site_data.site_desc }}">
+    {% endblock %}
 
     <title>{{ site_data.site_name }}</title>
 
