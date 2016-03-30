@@ -14,7 +14,7 @@ base = os.path.expanduser('~/.port')
 
 def site_config(site_name):
     path = os.path.join(base, site_name + '.yaml')
-    return yaml.load(open(path, 'r'))
+    return yaml.load(open(path, 'r', encoding='utf8'))
 
 def app_for_site(site_name, port):
     """
