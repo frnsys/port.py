@@ -168,7 +168,7 @@ A convenience command is included for hosting your site on a server.
 
 First, install the following on your server:
 
-    $ sudo apt-get install uswgi nginx supervisor python3 python3-pip uwsgi-plugin-python3
+    $ sudo apt-get install uwsgi nginx supervisor python3 python3-pip uwsgi-plugin-python3
 
 Then run:
 
