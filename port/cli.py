@@ -17,9 +17,7 @@ def site_config(site_name):
     return yaml.load(open(path, 'r', encoding='utf8'))
 
 def app_for_site(site_name, port):
-    """
-    see host.py
-    """
+    """see host.py"""
     conf = site_config(site_name)
     site_dir = conf['SITE_DIR']
     theme = os.path.join(base, 'themes', conf['THEME'])
@@ -42,9 +40,7 @@ def cli():
 @click.argument('site_name')
 @click.option('--port', default=5005)
 def serve(site_name, port):
-    """
-    Serve a site
-    """
+    """serve a site"""
     app = app_for_site(site_name, port)
     app.run(host='0.0.0.0', debug=True, port=port)
 
@@ -55,9 +51,7 @@ def serve(site_name, port):
 @click.argument('user')
 @click.option('--port', default=5005)
 def host(site_name, host_name, user, port):
-    """
-    Host a site (experimental, only tested on Ubuntu 14.04)
-    """
+    """host a site (experimental, only tested on Ubuntu 14.04)"""
     host_site(site_name, host_name, user, port=port)
 
 
@@ -65,18 +59,14 @@ def host(site_name, host_name, user, port):
 @click.argument('site_name')
 @click.argument('host_name')
 def unhost(site_name, host_name):
-    """
-    Unhost a site
-    """
+    """unhost a site"""
     unhost_site(site_name, host_name)
 
 
 @cli.command()
 @click.argument('site_name')
 def create(site_name):
-    """
-    Create a new site
-    """
+    """create a new site"""
     theme_dir = os.path.join(base, 'themes')
     if not os.path.exists(base):
         os.makedirs(base)
@@ -88,7 +78,6 @@ def create(site_name):
     if os.path.exists(path):
         echo('Site already exists! Remove the existing config at {} and retry.'.format(path))
         return
-
 
     themes = [t for t in os.listdir(theme_dir) if not t.startswith('.')]
     site_dir = input('Where will your site\'s files be located? ')
@@ -113,7 +102,7 @@ def create(site_name):
 
     yaml.dump(conf, open(path, 'w'), default_flow_style=False)
 
-    # Create the site directories
+    # create the site directories
     if not os.path.exists(site_dir):
         os.makedirs(site_dir)
 
@@ -129,9 +118,7 @@ def create(site_name):
 @cli.command()
 @click.argument('site_name')
 def build(site_name):
-    """
-    Build a site
-    """
+    """build a site"""
     print('Building...')
     conf = site_config(site_name)
     build_site(conf)
@@ -142,12 +129,10 @@ def build(site_name):
 @click.argument('site_name')
 @click.argument('remote')
 def sync(site_name, remote):
-    """
-    A convenience command to sync a site's files to a remote folder
-    """
+    """a convenience command to sync a site's files to a remote folder"""
     conf = site_config(site_name)
 
-    # Prep paths
+    # prep paths
     site_dir = conf['SITE_DIR']
     site_dir = os.path.expanduser(site_dir)
 

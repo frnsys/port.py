@@ -15,11 +15,11 @@ setup(
     install_requires=[
         'click',
         'flask',
-        'py-gfm',
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
-        'whoosh'
+        'whoosh',
+        'nom'
     ],
     entry_points='''
         [console_scripts]

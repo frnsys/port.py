@@ -9,9 +9,7 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def index():
-    """
-    Index for all categories
-    """
+    """index for all categories"""
     conf = current_app.config
     per_page = int(conf.get('PER_PAGE'))
 
@@ -31,9 +29,7 @@ def favicon():
 
 @bp.route('/search')
 def search():
-    """
-    Search posts
-    """
+    """search posts"""
     conf = current_app.config
     per_page = int(conf.get('PER_PAGE'))
     query = request.args.get('query', '')
@@ -50,14 +46,12 @@ def search():
             post = Post.single(r['category'], r['slug'])
             post.search_highlight = r.highlights('content', text=post.plain)
 
-            # If the result is only in the title, the highlight will be empty
+            # if the result is only in the title, the highlight will be empty
             if not post.search_highlight:
                 post.search_highlight = post.plain[:200]
-
             posts.append(post)
 
     posts, page, last_page = _pagination(posts, per_page)
-
     return render_template('search.html',
                            posts=posts, page=page+1,
                            last_page=last_page,
@@ -66,12 +60,10 @@ def search():
 
 @bp.route('/<slug>')
 def category_page(slug):
-    """
-    Index for a category or a single page
-    """
+    """index for a category or a single page"""
     conf = current_app.config
 
-    # If we don't recognize this as a category,
+    # if we don't recognize this as a category,
     # try a page
     if slug not in current_app.fm.categories():
         try:
@@ -99,10 +91,8 @@ def category_page(slug):
 
 @bp.route('/<category>/<slug>')
 def post(category, slug):
-    """
-    Show a single post;
-    The slug is the filename of the original markdown file
-    """
+    """show a single post;
+    the slug is the filename of the original markdown file"""
     post = Post.single(category, slug)
     if post is not None:
         return render_template('single.html',
@@ -114,10 +104,8 @@ def post(category, slug):
 
 @bp.route('/assets/<path:filename>')
 def assets(filename):
-    """
-    Handle assets for this site
-    (the actual static path is used to serve theme files)
-    """
+    """handle assets for this site
+    (the actual static path is used to serve theme files)"""
     return send_from_directory(current_app.fm.asset_dir, filename)
 
 
@@ -139,4 +127,3 @@ def _pagination(posts, per_page):
 
     last_page = math.ceil(N/per_page)
     return posts[n:m], page, last_page
-
