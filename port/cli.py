@@ -4,7 +4,7 @@ import click
 import shutil
 import subprocess
 from click import echo
-from port.compile import build_site
+from port.build import build_site
 
 base = os.path.expanduser('~/.port')
 
