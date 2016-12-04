@@ -5,7 +5,6 @@ import shutil
 import subprocess
 from click import echo
 from port.compile import build_site
-from port.build import build as mkbuild
 
 base = os.path.expanduser('~/.port')
 
@@ -18,13 +17,6 @@ def site_config(site_name):
 @click.group()
 def cli():
     pass
-
-
-@cli.command()
-@click.argument('site_name')
-def mksite(site_name):
-    conf = site_config(site_name)
-    mkbuild(conf, base)
 
 
 @cli.command()
@@ -85,7 +77,7 @@ def build(site_name):
     """build a site"""
     print('Building...')
     conf = site_config(site_name)
-    build_site(conf)
+    build_site(conf, base)
     echo('Built!')
 
 

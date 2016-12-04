@@ -14,11 +14,11 @@ setup(
     packages=find_packages(),
     install_requires=[
         'click',
-        'flask',
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
-        'nom'
+        'nom',
+        'bunch'
     ],
     entry_points='''
         [console_scripts]
