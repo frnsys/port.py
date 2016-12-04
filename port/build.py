@@ -31,7 +31,7 @@ class Post():
             setattr(self, k.lower(), v)
 
     @classmethod
-    def _sort(cls, posts):
+    def sort(cls, posts):
         """sort by reverse chron"""
         return sorted(posts, key=lambda p: p.published_at, reverse=True)
 
@@ -163,6 +163,7 @@ def build(conf, base):
         # category index
         meta = meta_.copy()
         meta['current_url'] = '/{}'.format(slug)
+        posts = Post.sort(posts)
         for posts_, page, last_page in b.pagination(posts, per_page):
             if page == 0:
                 b.render(template,
@@ -182,6 +183,7 @@ def build(conf, base):
 
     # index
     per_page = int(conf.get('PER_PAGE'))
+    all_posts = Post.sort(all_posts)
     for posts_, page, last_page in b.pagination(all_posts, per_page):
         if page == 0:
             b.render('index.html',
