@@ -55,13 +55,13 @@ class FileManager():
         return [os.path.join(path, f) for f in os.listdir(path)
                                       if f.endswith('.md')]
 
-    def posts_for_category(self, category):
+    def posts_for_category(self, category, drafts=False):
         """paths for compiled posts for a category"""
         cat_dir = self.category_dir(category)
         return [os.path.join(cat_dir, f) for f in os.listdir(cat_dir)
                                          if f.endswith('.json')
                                          and f != 'meta.json'
-                                         and not f.startswith('D')]
+                                         and (not f.startswith('D') or drafts)]
 
     def find_post(self, category, slug):
         """find compiled post matching the category and slug"""
@@ -83,12 +83,14 @@ class FileManager():
                 if c != 'pages'
                 and not c.startswith('.')]
 
-    def pages(self):
-        """compiled page slugs"""
-        return [f.replace('.json', '')[1:]
+    def pages(self, drafts=False):
+        """compiled page filenames and slugs"""
+        return [(
+            os.path.join(self.bpages_dir, f),
+            f.replace('.json', '')[1:])
                 for f in os.listdir(self.bpages_dir)
                 if f.endswith('.json')
-                and not f.startswith('D')]
+                and (not f.startswith('D') or drafts)]
 
     def raw_pages(self):
         """uncompiled page files"""
