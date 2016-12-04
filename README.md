@@ -1,7 +1,7 @@
 # Port
 ### A lightweight blogging platform
 
-`port` makes it easy to run a simple markdown-driven blog. There is no admin UI or database. (no need!)
+`port` makes it easy to run a simple markdown-driven blog/static site generator. There is no admin UI or database. (no need!)
 
 You use the command-line interface to create a new site, which makes a directory where you can store different folders (folders are treated as categories), and within those folders you write markdown files.
 
@@ -20,7 +20,6 @@ An example site is my own blog: [space and times](http://spaceandtim.es/)
 - Supports **GitHub-Flavored** Markdown
 - Supports **MathJax** syntax (in the default theme)
 - Includes **RSS feeds** for each category and all posts
-- Includes **search**
 
 
 ## Creating a site
@@ -71,11 +70,9 @@ Pages are written exactly the same as posts - in Markdown and with optional YAML
 
 ## Running a site
 
-To run a site that you've created, just do:
+To preview the built site you can just change into the `.build` directory and run Python's built-in HTTP server:
 
-    $ port serve my_new_site
-
-You can optionally specify a port with `--port`.
+    python3 -m http.server
 
 The main endpoints are:
 
@@ -84,7 +81,6 @@ The main endpoints are:
 - `/<category name>/<post slug>` - a single post
 - `/rss` - the rss feed for all your posts (20 most recent published)
 - `/rss/<category name>` - the rss feed for one category (20 most recent published)
-- `/search?query=<query>` - the search endpoint
 - `/<page>` - a non-post/non-category page
 
 
@@ -118,7 +114,6 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 - `category.html` - used to render category pages
 - `index.html` - used to render the home page
 - `single.html` - used to render single post pages
-- `search.html` - used to render search results
 - `page.html` - used to render non-post/non-category pages
 - `404.html` - 404 error page
 - `500.html` - 500 error page
@@ -151,37 +146,15 @@ Whatever else you include as metadata in your files will also show up as attribu
 - `slug` the post's slug
 - `draft` - a bool of whether or not the post is a draft
 
-#### Static files
+#### JS & CSS
 
-You can refer to static files in your theme at the `/static` url. For instance, if in my new theme I had the file `css/index.css`, I could refer to it at the url `/static/css/index.css`.
+The theme's JS and CSS folders are available at `/js` and `/css` respectively.
 
 #### Example
 
 See the [default theme](https://github.com/frnsys/port/tree/master/port/themes/default) for an example.
 
-
 ---
-
-## Hosting on a server
-
-A convenience command is included for hosting your site on a server.
-
-First, install the following on your server:
-
-    $ sudo apt-get install uwsgi nginx supervisor python3 python3-pip uwsgi-plugin-python3
-
-Then run:
-
-    $ port host <site name> <host name> <user> [--port]
-
-For example:
-
-    $ port host my_new_site blog.mysite.com ftseng --port 5005
-
-The `<user>` arg is so that `supervisor` can locate the `port` site config and themes.
-
-What this does is generate the necessary config files to host the site and restart `nginx` and `supervisor`.
-
 
 #### Syncing to a remote folder
 
@@ -195,24 +168,6 @@ For example:
 
     $ port sync my_new_site user@mysite.com:~/my_site
 
-
-#### Unhosting
-
-If you want to "unhost" the site, you can just run:
-
-    $ port unhost <site name> <host name>
-
-
-#### Debugging tips
-
-If you're having issues with hosting the site, these logs help:
-
-    $ tail -f /var/log/supervisor/supervisord.log
-    $ tail -f /var/log/nginx/error.log
-    $ tail -f /var/log/port_<site name>.log
-
-You should also set `DEBUG: true` in your site's config when debugging.
-
 ---
 
 ## Pro tips
@@ -220,5 +175,3 @@ You should also set `DEBUG: true` in your site's config when debugging.
 - If you're using vim, you can configure a keybinding to drop in the current datetime for you, which is useful for setting the `published_at` value in a post's yaml frontmatter, e.g.:
 
     nnoremap <leader>, "=strftime("%m.%d.%Y %H:%M")<CR>P
-
-

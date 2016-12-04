@@ -4,10 +4,7 @@ import click
 import shutil
 import subprocess
 from click import echo
-from port.server import create_app
-from port.compile import build_site
-from port.host import host_site, unhost_site
-from port.fs import FileManager
+from port.build import build_site
 
 base = os.path.expanduser('~/.port')
 
@@ -16,51 +13,10 @@ def site_config(site_name):
     path = os.path.join(base, site_name + '.yaml')
     return yaml.load(open(path, 'r', encoding='utf8'))
 
-def app_for_site(site_name, port):
-    """see host.py"""
-    conf = site_config(site_name)
-    site_dir = conf['SITE_DIR']
-    theme = os.path.join(base, 'themes', conf['THEME'])
-    app = create_app(static_folder=theme, template_folder=theme, **conf)
-    app.fm = FileManager(site_dir)
-
-    if conf.get('DEBUG', False):
-        app.config['DEBUG'] = True
-        app.config['PROPAGATE_EXCEPTIONS'] = True
-
-    return app
-
 
 @click.group()
 def cli():
     pass
-
-
-@cli.command()
-@click.argument('site_name')
-@click.option('--port', default=5005)
-def serve(site_name, port):
-    """serve a site"""
-    app = app_for_site(site_name, port)
-    app.run(host='0.0.0.0', debug=True, port=port)
-
-
-@cli.command()
-@click.argument('site_name')
-@click.argument('host_name')
-@click.argument('user')
-@click.option('--port', default=5005)
-def host(site_name, host_name, user, port):
-    """host a site (experimental, only tested on Ubuntu 14.04)"""
-    host_site(site_name, host_name, user, port=port)
-
-
-@cli.command()
-@click.argument('site_name')
-@click.argument('host_name')
-def unhost(site_name, host_name):
-    """unhost a site"""
-    unhost_site(site_name, host_name)
 
 
 @cli.command()
@@ -121,7 +77,7 @@ def build(site_name):
     """build a site"""
     print('Building...')
     conf = site_config(site_name)
-    build_site(conf)
+    build_site(conf, base)
     echo('Built!')
 
 

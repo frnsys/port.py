@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='port',
-    version='0.3.3',
+    version='1.0.0',
     description='lightweight static blog',
     url='https://github.com/frnsys/port',
     author='Francis Tseng (@frnsys)',
@@ -14,12 +14,11 @@ setup(
     packages=find_packages(),
     install_requires=[
         'click',
-        'flask',
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
-        'whoosh',
-        'nom'
+        'nom',
+        'bunch'
     ],
     entry_points='''
         [console_scripts]
