@@ -20,7 +20,6 @@ An example site is my own blog: [space and times](http://spaceandtim.es/)
 - Supports **GitHub-Flavored** Markdown
 - Supports **MathJax** syntax (in the default theme)
 - Includes **RSS feeds** for each category and all posts
-- Includes **search**
 
 
 ## Creating a site
@@ -84,7 +83,6 @@ The main endpoints are:
 - `/<category name>/<post slug>` - a single post
 - `/rss` - the rss feed for all your posts (20 most recent published)
 - `/rss/<category name>` - the rss feed for one category (20 most recent published)
-- `/search?query=<query>` - the search endpoint
 - `/<page>` - a non-post/non-category page
 
 
@@ -118,7 +116,6 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 - `category.html` - used to render category pages
 - `index.html` - used to render the home page
 - `single.html` - used to render single post pages
-- `search.html` - used to render search results
 - `page.html` - used to render non-post/non-category pages
 - `404.html` - 404 error page
 - `500.html` - 500 error page

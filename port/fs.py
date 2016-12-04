@@ -10,7 +10,6 @@ class FileManager():
         self.build_dir = os.path.join(self.site_dir, '.build')
         self.rss_dir = os.path.join(self.build_dir, '.rss')
         self.asset_dir = os.path.join(self.site_dir, 'assets')
-        self.index_dir = os.path.join(self.build_dir, '.searchindex')
         self.pages_dir = os.path.join(self.site_dir, 'pages')
         self.bpages_dir = os.path.join(self.build_dir, 'pages')
 

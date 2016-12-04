@@ -59,11 +59,6 @@ header a:visited {
     margin: 4em;
 }
 
-.search-match {
-    color: #FC3A37;
-    font-weight: bold;
-}
-
 table {
   padding: 0;
   display: block;
