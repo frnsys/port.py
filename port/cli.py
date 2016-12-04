@@ -91,11 +91,12 @@ def sync(site_name, remote):
     # prep paths
     site_dir = conf['SITE_DIR']
     site_dir = os.path.expanduser(site_dir)
+    build_dir = os.path.join(site_dir, '.build')
 
     subprocess.call([
         'rsync',
         '-ravu',
-        site_dir + '/',
+        build_dir + '/',
         remote,
         '--delete'
     ])
