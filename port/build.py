@@ -94,10 +94,15 @@ def build_site(conf, base):
     b = Builder(theme_dir, build_dir)
     fm = FileManager(site_dir)
 
-    # remove existing build
-    if os.path.exists(build_dir):
-        shutil.rmtree(build_dir)
-    os.makedirs(build_dir)
+    # clean existing build
+    if not os.path.exists(build_dir):
+        os.makedirs(build_dir)
+    for f in os.listdir(build_dir):
+        path = os.path.join(build_dir, f)
+        if os.path.isfile(path):
+            os.remove(path)
+        else:
+            shutil.rmtree(path)
 
     # build/copy over simple stuff
     b.render('404.html', '404.html', site_data=conf)
