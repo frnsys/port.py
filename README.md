@@ -116,7 +116,6 @@ New themes go into `~/.port/themes/`. Each theme must, at minimum, include the f
 - `single.html` - used to render single post pages
 - `page.html` - used to render non-post/non-category pages
 - `404.html` - 404 error page
-- `500.html` - 500 error page
 
 #### Available data
 
