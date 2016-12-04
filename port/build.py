@@ -3,7 +3,6 @@ import re
 import math
 import yaml
 import shutil
-from bunch import Bunch
 from datetime import datetime
 from PyRSS2Gen import RSS2, RSSItem
 from dateutil.parser import parse
@@ -16,6 +15,12 @@ from jinja2 import Environment, FileSystemLoader
 meta_re = re.compile(r'^---\n(.*?)\n---', re.DOTALL)
 title_re = re.compile(r'^#\s?([^#\n]+)')
 md_img_re = re.compile(r'!\[.*?\]\(`?([^`\(\)]+)`?\)')
+
+
+class Bunch():
+    def __init__(self, **data):
+        for k, v in data.items():
+            setattr(self, k, v)
 
 
 class HTMLCleaner(HTMLParser):
@@ -74,15 +79,20 @@ class Builder():
         except FileNotFoundError:
             pass
 
-    def pagination(self, posts, per_page):
+    def pagination(self, posts, per_page, pattern='/p/{}'):
         if per_page == 0:
-            yield posts, 0, 0
+            yield posts, Bunch(current=1, next=None, prev=None)
         else:
             last_page = math.ceil(len(posts)/per_page)
             for page in range(last_page):
                 n = per_page * page
                 m = per_page * (page + 1)
-                yield posts[n:m], page, last_page
+                next, prev = None, None
+                if page < last_page - 1:
+                    next = pattern.format(page+2)
+                if page > 0:
+                    prev = pattern.format(page)
+                yield posts[n:m], Bunch(current=page+1, next=next, prev=prev)
 
 
 def build_site(conf, base):
@@ -115,9 +125,10 @@ def build_site(conf, base):
     posts_by_cat = {}
     metas_by_cat = {}
     for cat in fm.categories():
-        cat_posts = [compile_post(f) for f in fm.posts_for_category(cat)]
+        cat_meta = compile_category(cat, fm.category_meta(cat), conf)
+        cat_posts = [compile_post(f, cat_meta) for f in fm.posts_for_category(cat)]
         posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
-        metas_by_cat[cat] = compile_category(cat, fm.category_meta(cat), conf)
+        metas_by_cat[cat] = cat_meta
     posts = sum(posts_by_cat.values(), [])
     posts = sorted(posts, key=lambda p: p.published_at, reverse=True)
     categories = metas_by_cat.values()
@@ -148,43 +159,39 @@ def build_site(conf, base):
                      post=post, site_data=meta)
         meta = Bunch(current_url=cat.url, **base_meta)
         cat_posts = [p for p in cat_posts if not p.draft]
-        for page_posts, page, last_page in b.pagination(cat_posts, cat.per_page):
-            if page == 0:
+        for page_posts, page in b.pagination(cat_posts, cat.per_page, pattern='/{}/p/{{}}'.format(cat.slug)):
+            if page.current == 1:
                 b.render(cat.template, '{}/index.html'.format(cat.slug),
-                         posts=page_posts, page=page+1,
-                         category=cat, last_page=last_page, site_data=meta)
-            else:
-                b.render(cat.template, '{}/{}/index.html'.format(cat.slug, page+1),
-                         posts=page_posts, page=page+1,
-                         category=cat, last_page=last_page, site_data=meta)
+                         posts=page_posts, page=page,
+                         category=cat, site_data=meta)
+            b.render(cat.template, '{}/p/{}/index.html'.format(cat.slug, page.current),
+                        posts=page_posts, page=page,
+                        category=cat, site_data=meta)
 
     # build index
     meta = Bunch(current_url='/', **base_meta)
     posts = [p for p in posts if not p.draft]
-    for page_posts, page, last_page in b.pagination(posts, conf['PER_PAGE']):
-        if page == 0:
+    for page_posts, page in b.pagination(posts, conf['PER_PAGE']):
+        if page.current == 1:
             b.render('index.html', 'index.html',
-                     posts=page_posts, page=page+1,
-                     last_page=last_page, site_data=meta)
-        else:
-            b.render('index.html', '{}/index.html'.format(page+1),
-                    posts=page_posts, page=page+1,
-                    last_page=last_page, site_data=meta)
+                     posts=page_posts, page=page, site_data=meta)
+        b.render('index.html', 'p/{}/index.html'.format(page.current),
+                posts=page_posts, page=page, site_data=meta)
 
     # build RSS files
     rss_dir = os.path.join(build_dir, 'rss')
     os.makedirs(rss_dir)
     for cat in fm.categories():
         rss_path = os.path.join(rss_dir, '{}.xml'.format(cat))
-        new_posts = [p for p in posts_by_cat[cat] if not p['draft']][:20]
+        new_posts = [p for p in posts_by_cat[cat] if not p.draft][:20]
         compile_rss(new_posts, conf, rss_path)
 
     rss_path = os.path.join(rss_dir, 'rss.xml')
-    new_posts = [p for p in posts if not p['draft']][:20]
+    new_posts = [p for p in posts if not p.draft][:20]
     compile_rss(new_posts, conf, rss_path)
 
 
-def compile_post(path):
+def compile_post(path, cat_meta):
     """compile a markdown post"""
     with open(path, 'r') as f:
         raw = f.read()
@@ -205,7 +212,7 @@ def compile_post(path):
         'text': text,
         'slug': slug,
         'description': desc,
-        'category': category,
+        'category': cat_meta,
         'image': imgs[0] if imgs else None,
         'url': '/{}/{}'.format(category, slug)
     }
@@ -249,7 +256,8 @@ def compile_category(slug, path, conf):
         'slug': slug,
         'url': '/{}'.format(slug),
         'template': 'category.html',
-        'per_page': conf['PER_PAGE']
+        'per_page': conf['PER_PAGE'],
+        'name': slug.replace('_', ' ')
     }
     if path is not None:
         data = yaml.load(open(path, 'r'))
@@ -304,10 +312,10 @@ def extract_metadata(raw):
 def compile_rss(posts, conf, outpath):
     """compile a list of posts to the specified outpath"""
     items = [RSSItem(
-        title=p['title'],
-        link=os.path.join(conf['SITE_URL'], p['category'], p['slug']),
-        description=p['html'],
-        pubDate=p['published_at']) for p in posts]
+        title=p.title,
+        link=os.path.join(conf['SITE_URL'], p.category.slug, p.slug),
+        description=p.html,
+        pubDate=p.published_at) for p in posts]
 
     rss = RSS2(
         title=conf['SITE_NAME'],

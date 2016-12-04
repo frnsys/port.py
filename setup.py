@@ -17,8 +17,7 @@ setup(
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
-        'nom',
-        'bunch'
+        'nom'
     ],
     entry_points='''
         [console_scripts]

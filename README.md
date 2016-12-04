@@ -123,7 +123,7 @@ Within each of these templates, you have access to the following variables:
 
 - `site_data` - an object consisting of the data stored in your site's yaml config file and additional metadata, such as `categories`. Note that the attribute names corresponding to keys in your site's config are lowercase (e.g. if you have `SITE_NAME` in your config, it is accessed at `site_data.site_name`)
 - post data: `single.html` includes a `post` object, `category.html` and `index.html` include a `posts` list
-- pagination data (`category.html` and `index.html`): you get a `page` variable (current page number) and a `last_page` variable (max page number)
+- pagination data (`category.html` and `index.html`): you get a `page` object which includes `page.current`, `page.next` (the next page's url, `None` if there is no next page), and `page.prev`
 
 `post` objects at minimum consist of:
 

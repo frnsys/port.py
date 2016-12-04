@@ -13,13 +13,13 @@
     </div>
 {%- endmacro %}
 
-{% macro pagination(page, last_page) -%}
+{% macro pagination(page) -%}
     <div class="pagination">
-        {% if page > 1 %}
-            <div class="prev-page"><a href="?p={{ page - 1}}">Previous Page</a></div>
+        {% if page.prev %}
+            <div class="prev-page"><a href="{{ page.prev }}">Previous Page</a></div>
         {% endif %}
 
-        {% if page < last_page %}
-            <div class="next-page"><a href="?p={{ page + 1 }}">Next Page</a></div>
+        {% if page.next %}
+            <div class="next-page"><a href="{{ page.next }}">Next Page</a></div>
         {% endif %}
 {%- endmacro %}
