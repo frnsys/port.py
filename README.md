@@ -1,7 +1,7 @@
 # Port
 ### A lightweight blogging platform
 
-`port` makes it easy to run a simple markdown-driven blog. There is no admin UI or database. (no need!)
+`port` makes it easy to run a simple markdown-driven blog/static site generator. There is no admin UI or database. (no need!)
 
 You use the command-line interface to create a new site, which makes a directory where you can store different folders (folders are treated as categories), and within those folders you write markdown files.
 
