@@ -4,6 +4,7 @@ import click
 import shutil
 import subprocess
 from click import echo
+from http import server
 from port.build import build_site
 
 base = os.path.expanduser('~/.port')
@@ -12,6 +13,13 @@ base = os.path.expanduser('~/.port')
 def site_config(site_name):
     path = os.path.join(base, site_name + '.yaml')
     return yaml.load(open(path, 'r', encoding='utf8'))
+
+
+def build_dir(site_name):
+    conf = site_config(site_name)
+    site_dir = conf['SITE_DIR']
+    site_dir = os.path.expanduser(site_dir)
+    return os.path.join(site_dir, '.build')
 
 
 @click.group()
@@ -86,17 +94,23 @@ def build(site_name):
 @click.argument('remote')
 def sync(site_name, remote):
     """a convenience command to sync a site's files to a remote folder"""
-    conf = site_config(site_name)
-
-    # prep paths
-    site_dir = conf['SITE_DIR']
-    site_dir = os.path.expanduser(site_dir)
-    build_dir = os.path.join(site_dir, '.build')
-
+    b = build_dir(site_name)
     subprocess.call([
         'rsync',
         '-ravu',
-        build_dir + '/',
+        b + '/',
         remote,
         '--delete'
     ])
+
+@cli.command()
+@click.argument('site_name')
+def serve(site_name):
+    """serve a site"""
+
+    print('Serving on localhost:8000...')
+    b = build_dir(site_name)
+    os.chdir(b)
+    addr = ('', 8000)
+    httpd = server.HTTPServer(addr, server.SimpleHTTPRequestHandler)
+    httpd.serve_forever()
