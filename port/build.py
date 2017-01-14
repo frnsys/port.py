@@ -67,7 +67,8 @@ class Builder():
         try:
             shutil.copytree(
                 os.path.join(base, dirname),
-                os.path.join(self.build_dir, dirname))
+                os.path.join(self.build_dir, dirname),
+                symlinks=True)
         except FileNotFoundError:
             pass
 
