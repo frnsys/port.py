@@ -79,6 +79,14 @@ class Builder():
         except FileNotFoundError:
             pass
 
+    def symlink(self, base, name):
+        try:
+            os.symlink(
+                os.path.join(base, name),
+                os.path.join(self.build_dir, name))
+        except FileNotFoundError:
+            pass
+
     def pagination(self, posts, per_page, pattern='/p/{}'):
         if per_page == 0:
             yield posts, Bunch(current=1, next=None, prev=None)
@@ -116,7 +124,7 @@ def build_site(conf, base):
 
     # build/copy over simple stuff
     b.render('404.html', '404.html', site_data=conf)
-    b.copydir(site_dir, 'assets')
+    b.symlink(site_dir, 'assets')
     b.copydir(theme_dir, 'css')
     b.copydir(theme_dir, 'js')
     b.copy(site_dir, 'favicon.ico')

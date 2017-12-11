@@ -98,6 +98,7 @@ def sync(site_name, remote):
     subprocess.call([
         'rsync',
         '-ravu',
+        '-L', # to copy contents of symlinks rather than symlinks themselves
         b + '/',
         remote,
         '--delete'
