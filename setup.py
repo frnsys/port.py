@@ -13,7 +13,7 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     install_requires=[
-        'click',
+        'click==6.2',
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
