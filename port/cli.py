@@ -6,6 +6,8 @@ import subprocess
 from click import echo
 from http import server
 from port.build import build_site
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
 base = os.path.expanduser('~/.port')
 
@@ -15,11 +17,14 @@ def site_config(site_name):
     return yaml.load(open(path, 'r', encoding='utf8'))
 
 
-def build_dir(site_name):
+def site_dir(site_name):
     conf = site_config(site_name)
     site_dir = conf['SITE_DIR']
-    site_dir = os.path.expanduser(site_dir)
-    return os.path.join(site_dir, '.build')
+    return os.path.expanduser(site_dir)
+
+
+def build_dir(site_name):
+    return os.path.join(site_dir(site_name), '.build')
 
 
 @click.group()
@@ -104,14 +109,40 @@ def sync(site_name, remote):
         '--delete'
     ])
 
+
 @cli.command()
 @click.argument('site_name')
 def serve(site_name):
-    """serve a site"""
+    """serve a site, auto-rebuilding on change"""
 
     print('Serving on localhost:8000...')
     b = build_dir(site_name)
     os.chdir(b)
     addr = ('', 8000)
-    httpd = server.HTTPServer(addr, server.SimpleHTTPRequestHandler)
-    httpd.serve_forever()
+
+    ob = Observer()
+    handler = FileSystemEventHandler()
+    def handle_event(event):
+        # avoid recursion and vim swap files
+        if b in event.src_path or '.sw' in event.src_path:
+            return
+        elif event.event_type == 'modified' and not event.is_directory:
+            print(event)
+            print('Re-building...')
+            conf = site_config(site_name)
+            build_site(conf, base)
+            print('Built!')
+    handler.on_any_event = handle_event
+
+    print('Watching for changes...')
+    ob.schedule(handler, site_dir(site_name), recursive=True)
+    ob.start()
+
+    try:
+        httpd = server.HTTPServer(addr, server.SimpleHTTPRequestHandler)
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print('Stopping...')
+        ob.stop()
+    ob.join()
+

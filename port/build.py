@@ -117,7 +117,7 @@ def build_site(conf, base):
         os.makedirs(build_dir)
     for f in os.listdir(build_dir):
         path = os.path.join(build_dir, f)
-        if os.path.isfile(path):
+        if os.path.isfile(path) or os.path.islink(path):
             os.remove(path)
         else:
             shutil.rmtree(path)
