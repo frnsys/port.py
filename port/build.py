@@ -316,13 +316,17 @@ def extract_metadata(raw):
 
     return raw, meta
 
+def unabsolute_urls(html, conf):
+    html = html.replace('src="/', 'src="{}/'.format(conf['SITE_URL']))
+    html = html.replace('href="/', 'href="{}/'.format(conf['SITE_URL']))
+    return html
 
 def compile_rss(posts, conf, outpath):
     """compile a list of posts to the specified outpath"""
     items = [RSSItem(
         title=p.title,
         link=os.path.join(conf['SITE_URL'], p.category.slug, p.slug),
-        description=p.html,
+        description=unabsolute_urls(p.html, conf),
         pubDate=p.published_at) for p in posts]
 
     rss = RSS2(
