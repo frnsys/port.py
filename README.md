@@ -173,13 +173,17 @@ For example:
 
 - If you're using vim, you can configure a keybinding to drop in the current datetime for you, which is useful for setting the `published_at` value in a post's yaml frontmatter, e.g.:
 
-    nnoremap <leader>, "=strftime("%m.%d.%Y %H:%M")<CR>P
+```
+nnoremap <leader>, "=strftime("%m.%d.%Y %H:%M")<CR>P
+```
 
 - Example nginx conf:
 
-    server {
-        listen      80;
-        server_name my.site.co;
-        root        /srv/my_new_site;
-        error_page  404     /404.html;
-    }
+```
+server {
+    listen      80;
+    server_name my.site.co;
+    root        /srv/my_new_site;
+    error_page  404     /404.html;
+}
+```
