@@ -112,13 +112,14 @@ def sync(site_name, remote):
 
 @cli.command()
 @click.argument('site_name')
-def serve(site_name):
+@click.option('-p', '--port', help='port', default=8000)
+def serve(site_name, port):
     """serve a site, auto-rebuilding on change"""
 
-    print('Serving on localhost:8000...')
+    print('Serving on localhost:{}...'.format(port))
     b = build_dir(site_name)
     os.chdir(b)
-    addr = ('', 8000)
+    addr = ('', port)
 
     ob = Observer()
     handler = FileSystemEventHandler()

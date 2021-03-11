@@ -72,7 +72,7 @@ Pages are written exactly the same as posts - in Markdown and with optional YAML
 
 To preview the site, you can run:
 
-    port serve my_new_site
+    port serve my_new_site -p 8080
 
 This will auto-rebuild the site when files change.
 
