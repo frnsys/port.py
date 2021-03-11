@@ -70,9 +70,11 @@ Pages are written exactly the same as posts - in Markdown and with optional YAML
 
 ## Running a site
 
-To preview the built site you can just change into the `.build` directory and run Python's built-in HTTP server:
+To preview the site, you can run:
 
-    python3 -m http.server
+    port serve my_new_site
+
+This will auto-rebuild the site when files change.
 
 The main endpoints are:
 
