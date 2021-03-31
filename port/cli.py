@@ -139,6 +139,10 @@ def serve(site_name, port):
     ob.schedule(handler, site_dir(site_name), recursive=True)
     ob.start()
 
+    # Initial build
+    conf = site_config(site_name)
+    build_site(conf, base)
+
     try:
         httpd = server.HTTPServer(addr, server.SimpleHTTPRequestHandler)
         httpd.serve_forever()
