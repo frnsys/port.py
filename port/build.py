@@ -134,7 +134,7 @@ def build_site(conf, base):
     metas_by_cat = {}
     for cat in fm.categories():
         cat_meta = compile_category(cat, fm.category_meta(cat), conf)
-        cat_posts = [compile_post(f, cat_meta) for f in fm.posts_for_category(cat)]
+        cat_posts = [compile_post(f, cat, cat_meta) for f in fm.posts_for_category(cat)]
         posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
         metas_by_cat[cat] = cat_meta
     posts = sum(posts_by_cat.values(), [])
@@ -200,13 +200,12 @@ def build_site(conf, base):
     compile_rss(new_posts, conf, rss_path)
 
 
-def compile_post(path, cat_meta):
+def compile_post(path, category, cat_meta):
     """compile a markdown post"""
     with open(path, 'r') as f:
         raw = f.read()
 
     parts = path.split('/')
-    category = parts[-2]
     slug = parts[-1].replace('.md', '')
 
     raw, meta = extract_metadata(raw)
