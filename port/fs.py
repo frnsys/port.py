@@ -19,11 +19,28 @@ class FileManager():
         return meta_path
 
     def categories(self):
-        """uncompiled category names"""
-        return [c for c in os.listdir(self.site_dir)
-                if os.path.isdir(os.path.join(self.site_dir, c))
-                and c not in ['assets', 'pages']
-                and not c.startswith('.')]
+        """uncompiled category names (recursive)"""
+        cats = []
+        queue = [self.site_dir]
+        while queue:
+            dir = queue.pop(0)
+            has_md = False
+            for d in os.listdir(dir):
+                if d.endswith('.md'):
+                    has_md = True
+
+                if d in ['assets', 'pages'] or d.startswith('.'):
+                    continue
+
+                path = os.path.join(dir, d)
+                if not os.path.isdir(path):
+                    continue
+
+                queue.append(path)
+
+            if has_md:
+                cats.append(dir)
+        return [os.path.relpath(c, self.site_dir) for c in cats]
 
     def posts_for_category(self, category):
         """paths for uncompiled posts for a category"""

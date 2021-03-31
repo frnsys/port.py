@@ -190,7 +190,8 @@ def build_site(conf, base):
     rss_dir = os.path.join(build_dir, 'rss')
     os.makedirs(rss_dir)
     for cat in fm.categories():
-        rss_path = os.path.join(rss_dir, '{}.xml'.format(cat))
+        cat_cleaned = cat.replace('/', '.')
+        rss_path = os.path.join(rss_dir, '{}.xml'.format(cat_cleaned))
         new_posts = [p for p in posts_by_cat[cat] if not p.draft][:20]
         compile_rss(new_posts, conf, rss_path)
 
