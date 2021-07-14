@@ -268,7 +268,7 @@ def compile_category(slug, path, conf):
         'name': slug.replace('_', ' ')
     }
     if path is not None:
-        data = yaml.load(open(path, 'r'))
+        data = yaml.safe_load(open(path, 'r'))
         meta.update(data)
     return Bunch(**meta)
 
@@ -288,7 +288,7 @@ def extract_metadata(raw):
     if meta_match is not None:
         meta_raw = meta_match.group(1)
         try:
-            ext_meta = yaml.load(meta_raw)
+            ext_meta = yaml.safe_load(meta_raw)
             meta.update(ext_meta)
 
             # remove the metadata before we compile
