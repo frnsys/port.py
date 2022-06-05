@@ -14,7 +14,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'click==6.2',
-        'watchdog==0.8.3',
+        'watchdog==2.1.8',
         'pyrss2gen',
         'python-dateutil',
         'pyyaml',
