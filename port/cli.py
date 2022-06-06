@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from click import echo
 from http import server
-from port.build import build_site
+from port.build import Builder
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -90,7 +90,8 @@ def build(site_name):
     """build a site"""
     print('Building...')
     conf = site_config(site_name)
-    build_site(conf, base)
+    builder = Builder(conf, base)
+    builder.build()
     echo('Built!')
 
 
@@ -116,10 +117,16 @@ def sync(site_name, remote):
 def serve(site_name, port):
     """serve a site, auto-rebuilding on change"""
 
-    print('Serving on localhost:{}...'.format(port))
     b = build_dir(site_name)
     os.chdir(b)
     addr = ('', port)
+
+    conf = site_config(site_name)
+    builder = Builder(conf, base)
+
+    # Initial build
+    print('Generating initial build...')
+    builder.build()
 
     ob = Observer()
     handler = FileSystemEventHandler()
@@ -128,22 +135,17 @@ def serve(site_name, port):
         if b in event.src_path or '.sw' in event.src_path:
             return
         elif event.event_type == 'modified' and not event.is_directory:
-            print(event)
-            print('Re-building...')
-            conf = site_config(site_name)
-            build_site(conf, base)
-            print('Built!')
+            print('Re-compiling {}'.format(event.src_path))
+            builder.recompile(event.src_path)
+            print('Done!')
     handler.on_any_event = handle_event
 
     print('Watching for changes...')
     ob.schedule(handler, site_dir(site_name), recursive=True)
     ob.start()
 
-    # Initial build
-    conf = site_config(site_name)
-    build_site(conf, base)
-
     try:
+        print('Serving on localhost:{}...'.format(port))
         httpd = server.HTTPServer(addr, server.SimpleHTTPRequestHandler)
         httpd.serve_forever()
     except KeyboardInterrupt:

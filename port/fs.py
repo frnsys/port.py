@@ -50,6 +50,9 @@ class FileManager():
 
     def pages(self):
         """uncompiled page files"""
-        return [os.path.join(self.pages_dir, f)
-                for f in os.listdir(self.pages_dir)
-                if f.endswith('.md')]
+        if os.path.exists(self.pages_dir):
+            return [os.path.join(self.pages_dir, f)
+                    for f in os.listdir(self.pages_dir)
+                    if f.endswith('.md')]
+        else:
+            return []

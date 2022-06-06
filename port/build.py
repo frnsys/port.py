@@ -49,9 +49,146 @@ def get_images(md):
 
 
 class Builder():
-    def __init__(self, theme_dir, build_dir):
-        self.build_dir = build_dir
-        self.env = Environment(loader=FileSystemLoader(theme_dir))
+    def __init__(self, conf, base):
+        conf['PER_PAGE'] = int(conf.get('PER_PAGE'))
+
+        self.conf = conf
+        self.site_dir = os.path.expanduser(conf['SITE_DIR'])
+        self.build_dir = os.path.join(self.site_dir, '.build')
+        self.theme_dir = os.path.join(base, 'themes', conf['THEME'])
+        self.env = Environment(loader=FileSystemLoader(self.theme_dir))
+        self.fm = FileManager(self.site_dir)
+
+    def build(self):
+        # clean existing build
+        if not os.path.exists(self.build_dir):
+            os.makedirs(self.build_dir)
+        for f in os.listdir(self.build_dir):
+            path = os.path.join(self.build_dir, f)
+            if os.path.isfile(path) or os.path.islink(path):
+                os.remove(path)
+            else:
+                shutil.rmtree(path)
+
+        # build/copy over simple stuff
+        self.render('404.html', '404.html', site_data=self.conf)
+        self.symlink(self.site_dir, 'assets')
+        self.copydir(self.theme_dir, 'css')
+        self.copydir(self.theme_dir, 'js')
+        self.copy(self.site_dir, 'favicon.ico')
+
+        # compile posts and categories
+        self.posts_by_cat = {}
+        self.metas_by_cat = {}
+        for cat in self.fm.categories():
+            cat_meta = compile_category(cat, self.fm.category_meta(cat), per_page=self.conf['PER_PAGE'])
+            cat_posts = [compile_post(f, cat, cat_meta) for f in self.fm.posts_for_category(cat)]
+            self.posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
+            self.metas_by_cat[cat] = cat_meta
+        posts = sum(self.posts_by_cat.values(), [])
+        self.posts = sorted(posts, key=lambda p: p.published_at, reverse=True)
+        categories = self.metas_by_cat.values()
+
+        # compile pages
+        pages = {}
+        for p in self.fm.pages():
+            page = compile_page(p)
+            pages[page.id] = page
+
+        self.base_meta = {k.lower(): v for k, v in self.conf.items()}
+        self.base_meta['pages'] = pages
+        self.base_meta['categories'] = list(categories)
+
+        # build pages
+        for page in pages.values():
+            meta = Bunch(current_url=page.url, **self.base_meta)
+            self.render(page.template, '{}/index.html'.format(page.slug), page=page, site_data=meta)
+
+        # build posts and categories
+        for cat_id, cat_posts in self.posts_by_cat.items():
+            os.makedirs(os.path.join(self.build_dir, cat_id))
+            cat = self.metas_by_cat[cat_id]
+            for post in cat_posts:
+                meta = Bunch(current_url=post.url, **self.base_meta)
+                self.render('single.html',
+                         '{}/{}/index.html'.format(cat.slug, post.slug),
+                         post=post, site_data=meta)
+            self._build_category_index(cat_id)
+
+        self._build_index()
+        self._build_rss()
+
+    # Recompile a single path
+    def recompile(self, path):
+        if path in self.fm.pages():
+            page = compile_page(path)
+            meta = Bunch(current_url=page.url, **self.base_meta)
+            self.render(page.template, '{}/index.html'.format(page.slug), page=page, site_data=meta)
+            self.base_meta['pages'][page.id] = page
+        else:
+            # Figure out what category this post belongs to
+            path_cats = {}
+            for cat in self.fm.categories():
+                for p in self.fm.posts_for_category(cat):
+                    path_cats[p] = cat
+            cat_id = path_cats[path]
+
+            # Re-compile the post
+            cat = self.metas_by_cat[cat_id]
+            post = compile_post(path, cat_id, cat)
+            meta = Bunch(current_url=post.url, **self.base_meta)
+            self.render('single.html',
+                     '{}/{}/index.html'.format(cat.slug, post.slug),
+                     post=post, site_data=meta)
+
+            # Update the category
+            cat_posts = self.posts_by_cat[cat_id]
+            idx = next(i for i, p in enumerate(cat_posts) if p.id == path)
+            cat_posts[idx] = post
+            self.posts_by_cat[cat_id] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
+            self._build_category_index(cat_id)
+
+            # Update the index
+            idx = next(i for i, p in enumerate(self.posts) if p.id == path)
+            self.posts[idx] = post
+            self.posts = sorted(self.posts, key=lambda p: p.published_at, reverse=True)
+        self._build_index()
+
+    def _build_category_index(self, cat_id):
+        cat = self.metas_by_cat[cat_id]
+        meta = Bunch(current_url=cat.url, **self.base_meta)
+        cat_posts = [p for p in self.posts_by_cat[cat_id] if not p.draft]
+        for page_posts, page in self.pagination(cat_posts, cat.per_page, pattern='/{}/p/{{}}'.format(cat.slug)):
+            if page.current == 1:
+                self.render(cat.template, '{}/index.html'.format(cat.slug),
+                         posts=page_posts, page=page,
+                         category=cat, site_data=meta)
+            self.render(cat.template, '{}/p/{}/index.html'.format(cat.slug, page.current),
+                        posts=page_posts, page=page,
+                        category=cat, site_data=meta)
+
+    def _build_index(self):
+        meta = Bunch(current_url='/', **self.base_meta)
+        posts = [p for p in self.posts if not p.draft]
+        for page_posts, page in self.pagination(posts, self.conf['PER_PAGE']):
+            if page.current == 1:
+                self.render('index.html', 'index.html',
+                         posts=page_posts, page=page, site_data=meta)
+            self.render('index.html', 'p/{}/index.html'.format(page.current),
+                    posts=page_posts, page=page, site_data=meta)
+
+    def _build_rss(self):
+        rss_dir = os.path.join(self.build_dir, 'rss')
+        os.makedirs(rss_dir)
+        for cat in self.fm.categories():
+            cat_cleaned = cat.replace('/', '.')
+            rss_path = os.path.join(rss_dir, '{}.xml'.format(cat_cleaned))
+            new_posts = [p for p in self.posts_by_cat[cat] if not p.draft][:20]
+            compile_rss(new_posts, self.conf, rss_path)
+
+        rss_path = os.path.join(rss_dir, 'rss.xml')
+        new_posts = [p for p in self.posts if not p.draft][:20]
+        compile_rss(new_posts, self.conf, rss_path)
 
     def render(self, tmpl, outpath, **data):
         tmpl = self.env.get_template(tmpl)
@@ -103,102 +240,6 @@ class Builder():
                 yield posts[n:m], Bunch(current=page+1, next=next, prev=prev)
 
 
-def build_site(conf, base):
-    """build a site based on the passed config"""
-    conf['PER_PAGE'] = int(conf.get('PER_PAGE'))
-    site_dir = os.path.expanduser(conf['SITE_DIR'])
-    theme_dir = os.path.join(base, 'themes', conf['THEME'])
-    build_dir = os.path.join(site_dir, '.build')
-    b = Builder(theme_dir, build_dir)
-    fm = FileManager(site_dir)
-
-    # clean existing build
-    if not os.path.exists(build_dir):
-        os.makedirs(build_dir)
-    for f in os.listdir(build_dir):
-        path = os.path.join(build_dir, f)
-        if os.path.isfile(path) or os.path.islink(path):
-            os.remove(path)
-        else:
-            shutil.rmtree(path)
-
-    # build/copy over simple stuff
-    b.render('404.html', '404.html', site_data=conf)
-    b.symlink(site_dir, 'assets')
-    b.copydir(theme_dir, 'css')
-    b.copydir(theme_dir, 'js')
-    b.copy(site_dir, 'favicon.ico')
-
-    # compile posts and categories
-    posts_by_cat = {}
-    metas_by_cat = {}
-    for cat in fm.categories():
-        cat_meta = compile_category(cat, fm.category_meta(cat), conf)
-        cat_posts = [compile_post(f, cat, cat_meta) for f in fm.posts_for_category(cat)]
-        posts_by_cat[cat] = sorted(cat_posts, key=lambda p: p.published_at, reverse=True)
-        metas_by_cat[cat] = cat_meta
-    posts = sum(posts_by_cat.values(), [])
-    posts = sorted(posts, key=lambda p: p.published_at, reverse=True)
-    categories = metas_by_cat.values()
-
-    # compile pages
-    if os.path.exists(fm.pages_dir):
-        pages = [compile_page(p) for p in fm.pages()]
-    else:
-        pages = []
-
-    base_meta = {k.lower(): v for k, v in conf.items()}
-    base_meta['pages'] = pages
-    base_meta['categories'] = categories
-
-    # build pages
-    for page in pages:
-        meta = Bunch(current_url=page.url, **base_meta)
-        b.render(page.template, '{}/index.html'.format(page.slug), page=page, site_data=meta)
-
-    # build posts and categories
-    for cat, cat_posts in posts_by_cat.items():
-        os.makedirs(os.path.join(build_dir, cat))
-        cat = metas_by_cat[cat]
-        for post in cat_posts:
-            meta = Bunch(current_url=post.url, **base_meta)
-            b.render('single.html',
-                     '{}/{}/index.html'.format(cat.slug, post.slug),
-                     post=post, site_data=meta)
-        meta = Bunch(current_url=cat.url, **base_meta)
-        cat_posts = [p for p in cat_posts if not p.draft]
-        for page_posts, page in b.pagination(cat_posts, cat.per_page, pattern='/{}/p/{{}}'.format(cat.slug)):
-            if page.current == 1:
-                b.render(cat.template, '{}/index.html'.format(cat.slug),
-                         posts=page_posts, page=page,
-                         category=cat, site_data=meta)
-            b.render(cat.template, '{}/p/{}/index.html'.format(cat.slug, page.current),
-                        posts=page_posts, page=page,
-                        category=cat, site_data=meta)
-
-    # build index
-    meta = Bunch(current_url='/', **base_meta)
-    posts = [p for p in posts if not p.draft]
-    for page_posts, page in b.pagination(posts, conf['PER_PAGE']):
-        if page.current == 1:
-            b.render('index.html', 'index.html',
-                     posts=page_posts, page=page, site_data=meta)
-        b.render('index.html', 'p/{}/index.html'.format(page.current),
-                posts=page_posts, page=page, site_data=meta)
-
-    # build RSS files
-    rss_dir = os.path.join(build_dir, 'rss')
-    os.makedirs(rss_dir)
-    for cat in fm.categories():
-        cat_cleaned = cat.replace('/', '.')
-        rss_path = os.path.join(rss_dir, '{}.xml'.format(cat_cleaned))
-        new_posts = [p for p in posts_by_cat[cat] if not p.draft][:20]
-        compile_rss(new_posts, conf, rss_path)
-
-    rss_path = os.path.join(rss_dir, 'rss.xml')
-    new_posts = [p for p in posts if not p.draft][:20]
-    compile_rss(new_posts, conf, rss_path)
-
 
 def compile_post(path, category, cat_meta):
     """compile a markdown post"""
@@ -215,6 +256,7 @@ def compile_post(path, category, cat_meta):
     imgs = get_images(raw)
 
     data = {
+        'id': path,
         'plain': raw,
         'html': html,
         'text': text,
@@ -258,13 +300,13 @@ def compile_page(path):
     return Bunch(**data)
 
 
-def compile_category(slug, path, conf):
+def compile_category(slug, path, per_page):
     """compile category data"""
     meta = {
         'slug': slug,
         'url': '/{}'.format(slug),
         'template': 'category.html',
-        'per_page': conf['PER_PAGE'],
+        'per_page': per_page,
         'name': slug.replace('_', ' ')
     }
     if path is not None:
